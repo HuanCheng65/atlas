@@ -45,16 +45,16 @@ What the summary contains:
 ## After orient: what to do
 
 1. **Take stock silently.** Bind to current state internally.
-2. **Check for conflicts.** If the user has stated a goal in this conversation, compare against active D-NNN (does goal contradict a current decision?), open Q-NNN (already raised as an open question?), active journal entries (continuation or new thread?). Surface any conflicts to the user.
+2. **Check for conflicts.** If the user has stated a goal in this conversation, compare against active decisions (does the goal contradict one?), open questions (already raised?), active journal entries (continuation or new thread?). Surface any conflicts to the user **in plain project language** — describe the prior decision's *content*, not its `D-NNN` ID; refer to past work by *what was done*, not the journal filename. See `using-atlas`'s "Speak in plain project language" for the principle and examples.
 3. **Do not re-quote the summary back.** Use it as your internal context.
 
-Note: identifying which active journal entry to bind to for new work is `using-atlas`'s job at session start. If orient is invoked mid-session and you find yourself unsure which entry is in flight, ask the user.
+Note: identifying which active journal entry to bind to for new work is `using-atlas`'s job at session start. If orient is invoked mid-session and you find yourself unsure which entry is in flight, ask the user (in plain terms — e.g. "are we continuing the X work, or starting something new?", not "which active journal entry should I bind to?").
 
 ## Anti-patterns
 
 - **DO NOT** orient on every message. Once per session is enough.
 - **DO NOT** read every source file referenced in the summary up-front. The summary is the navigator — go to detail only when needed.
-- **DO NOT** ignore conflicts the orient surfaces. If user's stated goal contradicts an active D-NNN, raise it directly.
+- **DO NOT** ignore conflicts the orient surfaces. If the user's stated goal contradicts an active decision, raise it directly — but in plain language (describe the decision's content), not by naming the `D-NNN` ID. See `using-atlas`'s foundational rule.
 - **DO NOT** orient on projects without `docs/atlas/`. There is nothing to load.
 - **DO NOT** dump the entire summary back into chat. It's for *you*, not the user.
 

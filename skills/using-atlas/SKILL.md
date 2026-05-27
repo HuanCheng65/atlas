@@ -7,6 +7,46 @@ description: Auto-loaded at the start of every conversation on an atlas-enabled 
 
 You are working on a project that uses atlas (operational memory framework at `docs/atlas/`). This skill is the framing layer: it sets up framework awareness, triggers state loading, and decides when to open a journal entry for the work this conversation is about to do.
 
+## Speak in plain project language (foundational rule)
+
+Atlas is operational memory **for you, the agent**. The user wants the *effect* — continuity, conflict-detection, decision recall — without being asked to context-switch into "the framework". Surfacing framework artifacts in conversation makes them feel like they're managing two things instead of one.
+
+Two layers of communication exist; keep them distinct.
+
+### Layer 1: Substantive conversation (the meat of the discussion)
+
+When discussing the actual work, **translate framework vocabulary into plain project language**. The user is thinking about the work, not the data layer — don't make them context-switch.
+
+- **Conflicts**: describe the *content* of the prior decision, not its ID.
+  - Bad: "this conflicts with D-007."
+  - Good: "this conflicts with what we settled earlier — skill activation is event-driven, not session-phase-driven."
+- **Past work**: refer to *what was done*, not the journal file as a reference.
+  - Bad: "as we worked out in `journal/2026-05-27-cuda-graphs.md`"
+  - Good: "from the CUDA graphs work last week"
+- **Open questions / experiments**: same — describe the question / experiment, don't say "Q-003" or "E-005".
+
+### Layer 2: Operational announces (one-line, parenthetical, post-hoc)
+
+When you open a journal, append a log, write a Plan, or close work, a brief one-line announce is appropriate. **File paths are fine and useful here** — the journal is plain text + git (D-001), so the file *is* the durable record the user can later open, `git log`, or edit. The path is a pointer, not framework noise.
+
+What to drop is the **modifier verbiage** that describes the framework rather than the data:
+
+- Good: `(opened docs/atlas/journal/2026-05-27-cuda-graphs.md)`
+- Good: `(logged: P99 30.9 → 27.4ms, target hit)` — content-only also fine
+- Good: `(closed — verification passed)`
+- Bad: `(opened journal/2026-...md to track this work — this is a new active journal entry)` — extra framework descriptor verbiage
+- Bad: `(appended to the active journal entry: …)` — "active journal entry" is framework abstraction
+
+A rough rule: file paths and short content descriptions are fine; phrases like "active entry", "this journal entry", "to track this work", "I'll keep a log" that *describe the framework operation* in English are what to strip.
+
+### Exceptions — name framework artifacts directly when:
+
+- The user explicitly asks to see / list / audit / edit decisions / questions / journal items — name them; that's what they asked for.
+- The user is working *on* atlas itself (editing skill files, entity templates, journal scripts in this repo) — atlas is the subject matter.
+- During `atlas-bootstrap` — that's when the user is being introduced to the framework.
+
+Internal instructions in this and other atlas skills continue to use precise framework vocabulary — that's for *you*, not for repetition back to the user.
+
 ## At session start (REQUIRED)
 
 These three steps happen **before** you respond to the user's first message.
@@ -40,42 +80,32 @@ If multiple active entries plausibly match, ask the user once which one this con
 - You can extract a kebab-case slug candidate from the message's topic
 - No existing active entry is a plausible continuation
 
-**Action:** create `docs/atlas/journal/YYYY-MM-DD-<slug>.md` with this skeleton:
+**Action:** call `atlas-log`'s `open.py` script, piping the Context paragraph(s) via stdin:
 
-```yaml
----
-date: 2026-05-27
-slug: <slug>
-project: <inferred from PROJECT.md or cwd>
-tags: []
-status: active
-opened: 2026-05-27 14:00
-closed: null
-verification-result: null
-related: []
----
-```
-
-Body:
-
-```markdown
-# <Title from intent>
-
-## Context
+```bash
+python3 ~/.claude/skills/atlas-log/scripts/open.py \
+    --slug <kebab-case-slug> \
+    --project <project name from PROJECT.md> \
+    --tags <comma,separated,tags> <<'EOF'
 <one paragraph: what this work is about, based on opening messages>
-
-## Work log
+EOF
 ```
 
-**If you deferred for several exchanges before bootstrapping**, also include in the Context section a paragraph labeled `(retroactive — from earlier in this conversation)` capturing the relevant signals you observed while watching. Do not lose that context — failing to backfill means the journal entry pretends the conversation started fresh, which is false.
+Optional flags: `--related slug1,D-007` to link to existing entries / entities, `--title "Override default title"` if the slug-derived title is awkward.
+
+The script generates the date prefix, `opened` timestamp, and full frontmatter scaffolding. **Never write timestamps by hand.** If you find yourself wanting to use Write to create the entry directly, stop — use `open.py`. The scripts exist because hand-written timestamps caused real bugs.
+
+**If you deferred for several exchanges before bootstrapping**, the Context paragraph piped to stdin should include a sentence labeled `(retroactive — from earlier in this conversation)` capturing the signals you observed while watching. Do not lose that context — failing to backfill means the journal entry pretends the conversation started fresh, which is false.
 
 Skip the full Plan sections (Decisions resolved / Steps / Verification / Keepers / Throwaways). Those come from `grill-me` if the user wants formal planning, OR emerge later if work turns substantial.
 
-Announce in one line:
+`open.py` prints the path of the created file on stdout. Hold the slug in conversation memory. **Announce briefly** — the path is fine; drop framework-descriptor verbiage:
 
-> (opened journal/2026-05-27-<slug>.md to track this work)
+> (opened docs/atlas/journal/2026-05-27-<slug>.md)
 
-User may immediately override ("call it Y" / "I'm not doing that") — rename or delete the file. Zero friction by design.
+If the user is mid-flow on substantive work, the announce can be skipped entirely. See "Speak in plain project language" above for the principle.
+
+User may immediately override ("call it Y" / "I'm not doing that") — delete the file via `rm` (no scripted "rename" yet; safe to just delete and re-run `open.py` if needed).
 
 ### C. Defer
 
@@ -106,11 +136,12 @@ After intent is determined, subsequent agent actions route to the right skill:
 ## Anti-patterns
 
 - **DO NOT** skip session-start setup. Always run atlas-orient first.
-- **DO NOT** ask "should I open a journal entry?" before bootstrapping. Bootstrap silently when criteria met, announce after.
+- **DO NOT** ask "should I open a journal entry?" before bootstrapping. Bootstrap silently when criteria met, announce after (in plain language — see top of this skill).
 - **DO NOT** bootstrap an entry for queries, read-only requests, or greetings.
 - **DO NOT** re-invoke using-atlas mid-session. Once per session. If context drifts, re-invoke `atlas-orient` to refresh state.
 - **DO NOT** quote orient's output back to the user. Use it as your internal context.
 - **DO NOT** create journal entries from a conversation that's just discussion / exploration. Wait for concrete work intent.
+- **DO NOT** drag framework artifacts into *substantive* discussion — no `D-NNN`, `Q-NNN`, `E-NNN`, or journal filenames as references. Translate to content-level language. Operational one-line announces with file paths are a separate layer and *are* allowed. See "Speak in plain project language" above.
 
 ## Cross-references
 

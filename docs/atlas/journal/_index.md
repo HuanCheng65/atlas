@@ -6,20 +6,34 @@
 
 *No active entries.*
 
-## Recent closed (last 14 days, 1)
+## Recent closed (last 14 days, 4)
 
 | Date | Entry | Tags | Result |
 |------|-------|------|--------|
+| 2026-05-28 | [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md) | skills, ux, agent-behavior, transparency | passed |
+| 2026-05-28 | [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md) | skills, hooks, dogfood, harness | passed |
+| 2026-05-28 | [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md) | skills, scripts, journal, dogfood, agent-ergonomics | passed |
 | 2026-05-27 | [2026-05-27-tighten-roadmap-scope](2026-05-27-tighten-roadmap-scope.md) | roadmap, skills, data-model, dogfood | passed |
 
 ## By tag (closed)
 
+- **agent-behavior** (1): 2026-05-28
+- **agent-ergonomics** (1): 2026-05-28
 - **data-model** (1): 2026-05-27
-- **dogfood** (1): 2026-05-27
+- **dogfood** (3): 2026-05-28, 2026-05-28, 2026-05-27
+- **harness** (1): 2026-05-28
+- **hooks** (1): 2026-05-28
+- **journal** (1): 2026-05-28
 - **roadmap** (1): 2026-05-27
-- **skills** (1): 2026-05-27
+- **scripts** (1): 2026-05-28
+- **skills** (4): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
+- **transparency** (1): 2026-05-28
+- **ux** (1): 2026-05-28
 
 ## By month (archive)
 
-### 2026-05 (1 entries)
+### 2026-05 (4 entries)
+- 2026-05-28 [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md)
+- 2026-05-28 [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md)
+- 2026-05-28 [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md)
 - 2026-05-27 [2026-05-27-tighten-roadmap-scope](2026-05-27-tighten-roadmap-scope.md)

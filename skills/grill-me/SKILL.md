@@ -143,7 +143,7 @@ After writing the file, run:
 python ~/.claude/skills/atlas-log/scripts/reindex.py
 ```
 
-so the new active entry shows up in `journal/_index.md`. Then announce: "Plan written to journal/<slug>.md. Ready to start."
+so the new active entry shows up in `journal/_index.md`. Then announce briefly with the file path (e.g. `(Plan written to docs/atlas/journal/<slug>.md.)` — strip framework-descriptor verbiage but keep the path as a pointer). See `using-atlas`'s "Speak in plain project language" for the principle.
 
 ## Anti-patterns
 
