@@ -119,17 +119,33 @@ User may immediately override ("call it Y" / "I'm not doing that") — delete th
 
 If you've deferred for 3+ substantive exchanges and intent is still unclear, ask the user once what they're trying to do today, then decide.
 
-## Routing to other skills
+## Triggers the agent watches for (load-bearing)
 
-After intent is determined, subsequent agent actions route to the right skill:
+This section exists because trigger conditions hidden inside other skills' bodies don't fire — the agent only loads those bodies *after* deciding to invoke them, so the trigger that should drive invocation is invisible at the moment that matters. The cross-skill triggers live **here**, in using-atlas, which is loaded at session start and stays in context the whole session.
+
+**You are responsible for recognizing these moments as they happen.** Do not wait for the user to label them — they usually won't, because they're thinking about the work, not the framework. When you notice a trigger, route immediately, announce in one line (per the plain-language rule above), and proceed.
+
+| Agent-recognized moment | Action |
+|---|---|
+| A long-term architectural / framework / strategic choice gets settled in conversation — *even if no one called it a decision*, even if it emerged from back-and-forth refinement rather than an explicit "let's decide X" | Propose recording as D-NNN via `atlas-entity`. Default to proposing; only skip if you can articulate why it fails the D criteria (not long-term, no alternatives considered, won't be referenced) |
+| An unresolved question surfaces that won't be answered in this session | Propose Q-NNN via `atlas-entity` |
+| A measurement / experiment produces a result that might be cited later | Propose E-NNN via `atlas-entity` |
+| You completed a substantive unit of work | Append via `atlas-log` (no pre-confirmation) |
+| Work is wrapping up | Before close, ask yourself: "did this work establish a long-term choice or surface an open question?" If yes, propose D / Q before closing |
+
+**Failure mode to prevent:** "the user didn't ask me to record this, so I'll skip it." If you catch yourself thinking that about something that meets the D/Q/E criteria above, the trigger fired — propose it.
+
+The skill-specific *operational* details (which script to call, what frontmatter to fill, when to ask for confirmation on the action itself) live in each skill's body. Only the **recognition** lives here.
+
+## Routing (reactive — when the user names the action)
+
+When the user explicitly names what they want, route accordingly:
 
 | User signal | Skill to invoke |
 |---|---|
 | Wants planning on a non-trivial new task | `grill-me` — writes Plan into the active entry that using-atlas already opened |
 | Asks "what were we working on" or context seems stale mid-session | `atlas-orient` — re-load state |
-| Completes a unit of work, makes edits, runs experiments | `atlas-log` — appends as events happen |
-| Decides something architectural | `atlas-entity` creates D-NNN; `atlas-log` appends a journal note |
-| Surfaces a question or runs an experiment | `atlas-entity` creates Q-NNN / E-NNN |
+| Asks to list / search / audit decisions, questions, journal entries | `atlas-entity` (entities) or direct file reads (journal) |
 | Onboarding existing project to atlas | `atlas-bootstrap` — rare, once per project |
 | Periodic / milestone review | `atlas-compact` — planned |
 

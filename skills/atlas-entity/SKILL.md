@@ -1,6 +1,6 @@
 ---
 name: atlas-entity
-description: Manages structured entities under docs/atlas/ — decisions (D-NNN), experiments (E-NNN), and open questions (Q-NNN). Use this skill whenever the user makes a long-term architectural decision, runs an experiment, raises an unresolved question, supersedes a previous decision, or closes a question. Also use when the user asks to list, search, or audit any of these entities. Always run scripts/validate.py and scripts/reindex.py after structural changes.
+description: Manages structured entities under docs/atlas/ — decisions (D-NNN), experiments (E-NNN), and open questions (Q-NNN). Invoke proactively WHENEVER a long-term architectural / framework choice gets settled in conversation (the user usually won't explicitly label it — recognition is on you), an unresolved question surfaces that won't be answered this session, an experiment produces a citable result, or a previous decision needs to be superseded / a question closed. Also use when the user asks to list, search, or audit any of these entities. Always run scripts/validate.py and scripts/reindex.py after structural changes.
 ---
 
 # Atlas Entity Management

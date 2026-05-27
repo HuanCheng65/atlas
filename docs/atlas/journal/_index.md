@@ -6,12 +6,13 @@
 
 *No active entries.*
 
-## Recent closed (last 14 days, 5)
+## Recent closed (last 14 days, 6)
 
 | Date | Entry | Tags | Result |
 |------|-------|------|--------|
 | 2026-05-28 | [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md) | skills, ux, agent-behavior, transparency | passed |
 | 2026-05-28 | [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md) | skills, hooks, dogfood, harness | passed |
+| 2026-05-28 | [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md) | skills, triggers, journal, using-atlas, review-followup | passed |
 | 2026-05-28 | [2026-05-28-formalize-progressive-disclosure-conventions](2026-05-28-formalize-progressive-disclosure-conventions.md) | skills, data-model, orient, naming, progressive-disclosure | passed |
 | 2026-05-28 | [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md) | skills, scripts, journal, dogfood, agent-ergonomics | passed |
 | 2026-05-27 | [2026-05-27-tighten-roadmap-scope](2026-05-27-tighten-roadmap-scope.md) | roadmap, skills, data-model, dogfood | passed |
@@ -24,21 +25,25 @@
 - **dogfood** (3): 2026-05-28, 2026-05-28, 2026-05-27
 - **harness** (1): 2026-05-28
 - **hooks** (1): 2026-05-28
-- **journal** (1): 2026-05-28
+- **journal** (2): 2026-05-28, 2026-05-28
 - **naming** (1): 2026-05-28
 - **orient** (1): 2026-05-28
 - **progressive-disclosure** (1): 2026-05-28
+- **review-followup** (1): 2026-05-28
 - **roadmap** (1): 2026-05-27
 - **scripts** (1): 2026-05-28
-- **skills** (5): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
+- **skills** (6): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
 - **transparency** (1): 2026-05-28
+- **triggers** (1): 2026-05-28
+- **using-atlas** (1): 2026-05-28
 - **ux** (1): 2026-05-28
 
 ## By month (archive)
 
-### 2026-05 (5 entries)
+### 2026-05 (6 entries)
 - 2026-05-28 [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md)
 - 2026-05-28 [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md)
+- 2026-05-28 [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md)
 - 2026-05-28 [2026-05-28-formalize-progressive-disclosure-conventions](2026-05-28-formalize-progressive-disclosure-conventions.md)
 - 2026-05-28 [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md)
 - 2026-05-27 [2026-05-27-tighten-roadmap-scope](2026-05-27-tighten-roadmap-scope.md)

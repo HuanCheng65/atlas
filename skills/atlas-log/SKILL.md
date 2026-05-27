@@ -113,7 +113,21 @@ Close an active entry when:
 - Topic clearly switched and the previous entry will not be resumed (confirm with user first)
 - The entry has been stale for >3 days and the user confirms it's done
 
+**Closing entries with no formal Verification (opened via `open.py`, not `grill-me`):** these entries have only Context + Work log, no Plan / Verification section. The default close criterion is **implementation done + no obvious gaps + relevant validators pass** — e.g. edited skill files: skills still validate and grep confirms changes landed; created entity: `validate.py` and `reindex.py` clean; wrote a script change: script runs without error and output looks right. Make the judgment, close, announce — symmetric with append (no pre-confirmation). Do not wait for the user to bless every close; if you genuinely don't know whether the work is done, surface that explicitly instead of leaving the entry hanging.
+
+Be consistent across the session: don't close one entry on your own judgment, then sit on the next one waiting for approval, unless the second entry genuinely has a verification gap. Inconsistency is its own failure mode.
+
 Closing is **sticky** — once closed, the entry is frozen and append-only via the script (which refuses to write to closed entries). If related work resurfaces later, open a new entry and link via `related` frontmatter.
+
+### When a continuation is NOT a new work unit
+
+The "closed-is-sticky, open a new entry with `related:`" rule is for work that resurfaces **later** — different session, days/weeks gap, new sub-thread. It is NOT for these cases:
+
+- **Same-session refinement** — user gives feedback minutes after close that requires editing files you just touched. This is v2 of the same work unit; the closed entry stays accurate as v1, the commit history captures the recalibration. Just do the edits.
+- **Direct continuation of a just-closed unit** — you finish A, close it, the user immediately says "now also do A.adj where adj is a small tweak". Same unit. Edit; do not re-open.
+- **Reverting / undoing your own in-session work** — you wrote X, the user said no, you delete it. No entry needed.
+
+If you find yourself about to open a new entry within minutes of closing the previous one on the same conversation thread, stop. Ask: is this really a new work unit, or am I being reflexive? Default to "just edit." `git log` is the trail. The journal records work units, not every conversational micro-iteration.
 
 ### Confirmation rules
 
