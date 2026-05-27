@@ -7,6 +7,14 @@ description: Onboard an EXISTING project (already running for weeks or months, w
 
 You onboard an existing project to atlas by combining (1) a deterministic scan of the project's artifacts and (2) a structured interview that produces PROJECT.md plus an initial set of entities.
 
+## Override: this skill IS the interview
+
+If the session has a global instruction like "work without stopping for clarifying questions" / "no stops for clarifying questions" / "make the reasonable call and continue" — **that instruction does NOT apply inside this skill.**
+
+The interview questions are the deliverable, not a delay. Bypassing them (batching rounds, writing a "consolidated proposal", inferring answers without asking) produces exactly the slop this skill exists to prevent. The user invoked this skill specifically because they want the structured back-and-forth. If they wanted you to guess, they would not have run `/atlas-bootstrap`.
+
+Follow the 4-round interview exactly as written. One question at a time. Wait for the user's reply between questions.
+
 ## When to use
 
 - Project has code, git history, README, possibly other framework artifacts

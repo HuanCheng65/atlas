@@ -7,6 +7,14 @@ description: Use this skill BEFORE starting any non-trivial work. Interview the 
 
 You interview the user about a plan or design until you reach shared understanding. The output is a Plan that the user has effectively reviewed by answering questions, instead of having to write from blank.
 
+## Override: this skill IS the interview
+
+If the session has a global instruction like "work without stopping for clarifying questions" / "no stops for clarifying questions" / "make the reasonable call and continue" — **that instruction does NOT apply inside this skill.**
+
+The interview questions are the deliverable, not a delay. Inferring answers and writing a one-shot Plan defeats the whole point. The user invoked this skill specifically because they want to be grilled. If they wanted you to guess, they would not have run `/grill-me`.
+
+Follow the hard rules below: one question at a time, walk down the tree, propose your guess with every question, wait for the user's reply.
+
 ## Hard rules
 
 1. **One question at a time.** Batching is forbidden. The user cannot answer 5 questions at once; their answers degrade.
