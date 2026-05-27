@@ -5,13 +5,30 @@ of skills and data conventions that keep multi-session work coherent.
 
 ## What it provides
 
-- A user-level **Claude Code skill** (`atlas-entity`) that maintains
-  structured decisions, experiments, and open questions in `docs/atlas/`
-- A per-project **data layout** under `docs/atlas/` with templates,
-  validated frontmatter, and auto-generated indexes
-- A small CLI (`atlas-init`) to bootstrap `docs/atlas/` in any project
+A user-level set of **Claude Code skills** that route an agent through the
+lifecycle of a project's operational memory, plus a per-project **data
+layout** under `docs/atlas/` with templates, validated frontmatter, and
+auto-generated indexes.
 
-See `docs/design.md` for the design notes.
+- **using-atlas** — session-start entry point; loads project state, watches
+  for work intent, opens a journal entry when concrete work begins
+- **atlas-orient** — loads current state (decisions, open questions,
+  active and recent work) into the agent's context; produces a compact
+  navigator summary
+- **atlas-log** — maintains the journal under `docs/atlas/journal/` via
+  open / append / close scripts (all timestamps from `datetime.now()`, never
+  agent-fabricated)
+- **atlas-entity** — manages structured decisions (D-NNN), experiments
+  (E-NNN), and open questions (Q-NNN)
+- **grill-me** — interview-driven planning before non-trivial work; produces
+  a Plan with mandatory verification criteria
+- **atlas-bootstrap** — one-time onboarding for an existing project
+  (combines a deterministic scan with a 4-round interview)
+
+Plus a small CLI (`atlas-init`) to scaffold `docs/atlas/` in any project.
+
+See `docs/design.md` for design notes and `docs/atlas/decisions/_index.md`
+for the framework's own decision log.
 
 ## Install (one-time, per machine)
 
@@ -43,6 +60,10 @@ Or after adding `~/atlas/bin` to your `$PATH`:
 atlas-init
 ```
 
+The init script scaffolds `docs/atlas/` and adds a short "this project uses
+atlas" pointer to `CLAUDE.md`, which routes the agent through `using-atlas`
+at session start.
+
 ## Update
 
 ```bash
@@ -54,7 +75,7 @@ Symlinked skills update automatically — no reinstall needed.
 
 ## Requirements
 
-- Python 3.8+ with `pyyaml` (for the scripts in `atlas-entity`)
+- Python 3.8+ with `pyyaml` (for the scripts under `skills/*/scripts/`)
 - Claude Code (or any agent that reads `~/.claude/skills/`)
 - Bash (for `install.sh` / `atlas-init`)
 
@@ -62,10 +83,13 @@ Symlinked skills update automatically — no reinstall needed.
 
 | Skill | Status |
 |---|---|
-| atlas-entity | ready — manages D/E/Q entities |
-| atlas-session-start | TODO (phase 2) |
-| atlas-session-end | TODO (phase 2) |
-| atlas-compact | TODO (phase 2) |
+| using-atlas | ready — session entry point, watches for work intent, routes |
+| atlas-orient | ready — loads project state into agent context |
+| atlas-log | ready — journal lifecycle (open / append / close) |
+| atlas-entity | ready — D / E / Q lifecycle, validation, reindex |
+| grill-me | ready — interview-driven planning with verification criteria |
+| atlas-bootstrap | ready — one-time onboarding for existing projects |
+| atlas-compact | planned — periodic distillation / topic extraction from journal |
 
 ## License
 
