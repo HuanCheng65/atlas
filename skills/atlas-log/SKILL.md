@@ -7,6 +7,30 @@ description: Maintains the journal under docs/atlas/journal/. Use WHENEVER non-t
 
 You maintain the project journal at `docs/atlas/journal/`. The journal records the trajectory of work as it happens. One file equals one work unit: from plan (via grill-me) through execution to closure.
 
+## Naming: slug is the menu signal
+
+The slug becomes the filename, the auto-derived (or explicit `--title`) title shows up in `atlas-orient`'s active and recent listings, and the agent decides whether to read the entry based on that signal.
+
+**Rules:**
+
+- **Slug states the work, not the topic.** Journals describe *work units*, so slugs should be action-bearing: `add-X`, `refactor-Y`, `investigate-Z`, `migrate-A-to-B`, `strip-X-from-Y`. Topic-label slugs (`logging`, `auth-stuff`, `frontend-things`) fail.
+- **Self-contained.** Readable without other context. `fix-bug-123` is bad (what bug?); `fix-cuda-graphs-dispatch-race` is good.
+- **Specific enough to disambiguate from sibling work.** If you have three journal entries this week about `atlas`, none should just be `atlas`.
+- **kebab-case-words ≤ ~50 chars.** Longer is a signal the slug is trying to be a sentence — tighten.
+
+**Examples:**
+
+| Good | Bad | Why bad |
+|---|---|---|
+| `strip-framework-vocab-from-substantive-chat` | `transparency-fix` | doesn't say what was stripped or where |
+| `enforce-orient-and-interview-skills` | `skill-updates` | which skills? what enforced? |
+| `script-driven-journal-writes` | `journal-stuff` | doesn't name the work |
+| `cuda-graphs-dispatch-p99-regression` | `perf-bug` | which subsystem? which metric? |
+
+## Section convention: first sentence of Context carries the work
+
+The first sentence of `## Context` is what `atlas-orient` pulls into its active/recent listings. Make it independently readable — a stranger reading just that sentence should know what this work unit is. The rest of Context can elaborate.
+
 ## Mental model
 
 Each journal entry has a simple lifecycle:

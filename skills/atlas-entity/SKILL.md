@@ -13,6 +13,35 @@ Three kinds of structured entries live under `docs/atlas/`:
 
 Schemas: `reference/schemas.md`. Lifecycle (status state machines): `reference/lifecycle.md`. Read those before structural changes.
 
+## Naming: title is the menu signal
+
+The title is what `atlas-orient` shows in its summary. The agent decides whether to fetch the body based on the title alone, so titles must do real work — they cannot be topic labels.
+
+**Universal rules:**
+- **State the answer / question / claim, not the topic.** Topic-label titles ("Logging strategy", "Naming things", "Database stuff") fail — the reader still has to fetch the body to know what was decided.
+- **Self-contained.** Readable without prior context. Don't refer to other entity IDs in the title ("Refinement of D-007"); restate the substance.
+- **One sentence-fragment, ≤70 chars at the slug.** If `new.py` produces a slug longer than ~70 chars, the title is too long — tighten before filling the body.
+
+**Type-specific:**
+
+| Type | Title shape | Good | Bad |
+|---|---|---|---|
+| **D** | An answer / a chosen position | "Plain text + git as the data layer" / "Event-driven skill activation, not session-phase" / "Translate framework vocab in chat; keep file paths in announces" | "Data layer choice" / "Skill activation" / "Transparency rule" |
+| **Q** | A question, ending in `?` (or implied) | "Stale active-journal threshold (3 days?)" / "How should multi-machine sync handle divergent state?" | "Sync stuff" / "Journal staleness" |
+| **E** | A testable claim or comparison | "Does Split-K beat dense GEMM on small batch?" / "FlashAttention vs FlexAttention on Kuairand seq lengths" | "GEMM experiment" / "Attention benchmark" |
+
+**Test your title:** read it cold, without the body. Do you know what was decided / asked / tested? If no — rewrite.
+
+## Section conventions: first section is one sentence, self-contained
+
+The first content section of each type must be **one sentence, independently readable**. `atlas-orient` pulls this sentence into its summary, so the agent gets the call without fetching the full file:
+
+- **D** — `## Decision` is one sentence. State what was chosen. Multi-clause OK; multi-paragraph not.
+- **Q** — `## Why this matters` first sentence is the impact statement. State what's at stake if unresolved.
+- **E** — `## Hypothesis` is one falsifiable claim sentence. State what's being tested.
+
+If you find yourself writing two paragraphs into the first section, move the extra into the next one (Rationale for D, Context for Q, Setup for E).
+
 ## When to create what
 
 ### Decision (D-NNN)

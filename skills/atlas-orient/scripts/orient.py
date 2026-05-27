@@ -52,6 +52,62 @@ def bullet_lines(text):
     return [ln for ln in text.split("\n") if ln.lstrip().startswith(("-", "*"))]
 
 
+def first_sentence(text, cap=220):
+    """Return the first sentence of text, with wrapped lines joined.
+    Heuristic: skip HTML comments / blockquotes, collect first paragraph (consecutive non-empty
+    lines), then split on sentence-ending punctuation. If no sentence break, cap with ellipsis."""
+    para_lines = []
+    started = False
+    for raw in text.split("\n"):
+        ln = raw.strip()
+        if not started:
+            if not ln or ln.startswith("<!--") or ln.startswith(">"):
+                continue
+            started = True
+            para_lines.append(ln)
+        else:
+            if not ln:
+                break
+            para_lines.append(ln)
+    if not para_lines:
+        return ""
+    para = " ".join(para_lines)
+    m = re.match(r"^(.+?[.!?])(\s|$)", para)
+    sent = m.group(1).strip() if m else para
+    if len(sent) > cap:
+        sent = sent[: cap - 1].rstrip() + "…"
+    return sent
+
+
+def entity_file(entity_id, subdir):
+    """Find docs/atlas/<subdir>/<entity_id>-*.md. Returns Path or None."""
+    matches = sorted((ATLAS / subdir).glob(f"{entity_id}-*.md"))
+    return matches[0] if matches else None
+
+
+def headline_for_entity(entity_id, subdir, section_pattern):
+    """Pull the first sentence of the named section from an entity body.
+    Returns '' if file or section missing — caller renders without sub-bullet."""
+    f = entity_file(entity_id, subdir)
+    if not f:
+        return ""
+    body = read(f)
+    if not body:
+        return ""
+    sec = extract_section(body, section_pattern)
+    return first_sentence(sec) if sec else ""
+
+
+def headline_for_journal(filename):
+    """Pull the first sentence of ## Context from a journal entry filename (e.g. '2026-05-28-foo.md')."""
+    f = ATLAS / "journal" / filename
+    body = read(f)
+    if not body:
+        return ""
+    sec = extract_section(body, "Context")
+    return first_sentence(sec) if sec else ""
+
+
 def render_project(out, project_md):
     if project_md is None:
         out.append("## Project")
@@ -93,7 +149,14 @@ def render_roadmap(out):
     out.append("")
 
 
-def render_entity_list(out, label, idx_path, status_pattern):
+ENTITY_HEADLINE_SECTION = {
+    "decisions": "Decision",
+    "questions": "Why this matters",
+    "experiments": "Hypothesis",
+}
+
+
+def render_entity_list(out, label, idx_path, status_pattern, subdir=None):
     idx = read(idx_path)
     if idx is None:
         return
@@ -101,7 +164,15 @@ def render_entity_list(out, label, idx_path, status_pattern):
     bullets = bullet_lines(section) if section else []
     out.append(f"## {label} ({len(bullets)})")
     if bullets:
-        out.extend(bullets)
+        section_pat = ENTITY_HEADLINE_SECTION.get(subdir) if subdir else None
+        for b in bullets:
+            out.append(b)
+            if section_pat:
+                m = re.search(r"\*\*([DQE]-\d+)\*\*", b)
+                if m:
+                    headline = headline_for_entity(m.group(1), subdir, section_pat)
+                    if headline:
+                        out.append(f"  → {headline}")
     else:
         out.append("*(none)*")
     out.append("")
@@ -119,8 +190,16 @@ def render_journal(out):
     out.append("## Active journal entries")
     if active and "*No active entries.*" not in active:
         for ln in active.split("\n"):
-            if ln.strip():
-                out.append(ln)
+            if not ln.strip():
+                continue
+            out.append(ln)
+            # If this line is a top-level bullet with a markdown link to a journal file,
+            # pull the first sentence of ## Context as a sub-bullet.
+            m = re.match(r"^-\s+.*\[[^\]]+\]\(([^)]+\.md)\)", ln)
+            if m:
+                headline = headline_for_journal(m.group(1))
+                if headline:
+                    out.append(f"  → {headline}")
     else:
         out.append("*(none — no work in progress)*")
     out.append("")
@@ -151,12 +230,12 @@ def main():
 
     render_project(out, project_md)
     render_roadmap(out)
-    render_entity_list(out, "Active decisions", ATLAS / "decisions" / "_index.md", "active")
-    render_entity_list(out, "Open questions", ATLAS / "questions" / "_index.md", "open")
+    render_entity_list(out, "Active decisions", ATLAS / "decisions" / "_index.md", "active", subdir="decisions")
+    render_entity_list(out, "Open questions", ATLAS / "questions" / "_index.md", "open", subdir="questions")
 
     # Active experiments (only if experiments dir exists with index)
     if (ATLAS / "experiments" / "_index.md").exists():
-        render_entity_list(out, "Running experiments", ATLAS / "experiments" / "_index.md", "running")
+        render_entity_list(out, "Running experiments", ATLAS / "experiments" / "_index.md", "running", subdir="experiments")
 
     render_journal(out)
 
