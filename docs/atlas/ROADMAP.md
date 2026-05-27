@@ -8,12 +8,22 @@
 
 ## Current milestone
 
-**Phase 2: session lifecycle skills + verification enforcement**
+**Phase 2.5: ship atlas-compact + harden via sustained dogfood**
 
-Ship the four remaining skills (atlas-session-start, atlas-session-end,
-atlas-compact, plus a ported grill-me) and the Verification / Keepers /
-Throwaways convention as a hard output of grill-me. Validate by dogfooding
-atlas on its own development for at least one week.
+Phase 2's session-lifecycle work shipped under different names than
+originally planned — `using-atlas` (session entry + intent watching),
+`atlas-orient` (state load), `atlas-log` (journal lifecycle scripts) —
+and `grill-me` shipped with the Verification / Keepers / Throwaways
+convention as a hard output. Six skills now `ready` (see root README).
+Remaining: `atlas-compact` and proving the design holds under sustained
+real use.
 
-Exit criteria: phase 2 is ready when Echo has used it on the SLA project
-for one full week and reports the design pressure points.
+Exit criteria:
+
+- `atlas-compact` shipped with a first-pass topic-extraction heuristic
+  (resolves Q-002).
+- Echo uses atlas on the SLA project for one full week and reports
+  design pressure points.
+- Any drift, unclear conventions, or recurring agent failure modes
+  surfaced during that week land as D-NNN or skill patches before the
+  milestone closes.
