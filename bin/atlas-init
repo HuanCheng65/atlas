@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET="docs/atlas"
+
+# Helper: copy file only if target doesn't exist
+copy_if_missing() {
+    local src="$1"
+    local dst="$2"
+    if [ -e "$dst" ]; then
+        echo "atlas:   skip $dst (exists)"
+    else
+        cp "$src" "$dst"
+        echo "atlas:   create $dst"
+    fi
+}
+
+# ---------- 1. atlas data dir ----------
+echo "atlas: ensuring $TARGET skeleton"
+mkdir -p "$TARGET"/{journal,decisions,experiments,questions,topics,_templates}
+
+copy_if_missing "$REPO_DIR/templates/_templates/decision.md"   "$TARGET/_templates/decision.md"
+copy_if_missing "$REPO_DIR/templates/_templates/experiment.md" "$TARGET/_templates/experiment.md"
+copy_if_missing "$REPO_DIR/templates/_templates/question.md"   "$TARGET/_templates/question.md"
+copy_if_missing "$REPO_DIR/templates/README.md"                "$TARGET/README.md"
+copy_if_missing "$REPO_DIR/templates/ROADMAP.md"               "$TARGET/ROADMAP.md"
+
+# .gitkeep only in empty dirs (don't pollute dirs that already have content)
+for d in journal decisions experiments questions topics; do
+    if [ -z "$(ls -A "$TARGET/$d" 2>/dev/null)" ]; then
+        touch "$TARGET/$d/.gitkeep"
+    fi
+done
+
+# ---------- 2. CLAUDE.md ----------
+ATLAS_SECTION='<!-- atlas-init: BEGIN (managed block; delete entire block + re-run atlas-init to refresh) -->
+## Operational memory (atlas)
+
+This project uses atlas at `docs/atlas/`. **At session start, invoke the `using-atlas` skill** — it orchestrates state loading, intent detection, and journal management.
+
+See `docs/atlas/README.md` for the data model.
+<!-- atlas-init: END -->'
+
+if [ -f CLAUDE.md ]; then
+    if grep -qF "atlas-init: BEGIN" CLAUDE.md; then
+        echo "atlas: CLAUDE.md already has atlas section, skip"
+    else
+        printf "\n%s\n" "$ATLAS_SECTION" >> CLAUDE.md
+        echo "atlas: appended atlas section to existing CLAUDE.md"
+    fi
+else
+    cat > CLAUDE.md <<'HEAD'
+# Agent Rules
+
+## Project context
+
+See PROJECT.md for background and long-term goals.
+
+HEAD
+    printf "%s\n\n" "$ATLAS_SECTION" >> CLAUDE.md
+    cat >> CLAUDE.md <<'TAIL'
+## Coding conventions
+
+(your conventions here)
+TAIL
+    echo "atlas: created CLAUDE.md"
+fi
+
+# ---------- 3. PROJECT.md ----------
+if [ -f PROJECT.md ]; then
+    echo "atlas: PROJECT.md already exists, skip"
+else
+    cp "$REPO_DIR"/templates/PROJECT.md PROJECT.md
+    echo "atlas: created PROJECT.md from template"
+fi
+
+# ---------- 4. next steps ----------
+cat <<EOF
+
+atlas-init complete (idempotent — safe to re-run).
+
+Next steps:
+  1. Edit $TARGET/ROADMAP.md with current milestones
+  2. Fill in PROJECT.md sections (Background / Long-term goals / Glossary / ...)
+  3. Try: python ~/.claude/skills/atlas-entity/scripts/new.py --type D "your first decision"
+EOF

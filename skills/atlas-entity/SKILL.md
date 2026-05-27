@@ -1,0 +1,93 @@
+---
+name: atlas-entity
+description: Manages structured entities under docs/atlas/ — decisions (D-NNN), experiments (E-NNN), and open questions (Q-NNN). Use this skill whenever the user makes a long-term architectural decision, runs an experiment, raises an unresolved question, supersedes a previous decision, or closes a question. Also use when the user asks to list, search, or audit any of these entities. Always run scripts/validate.py and scripts/reindex.py after structural changes.
+---
+
+# Atlas Entity Management
+
+Three kinds of structured entries live under `docs/atlas/`:
+
+- **D-NNN — Decisions**: long-term architectural or strategic choices
+- **E-NNN — Experiments**: research runs with hypothesis, config, result
+- **Q-NNN — Questions**: open questions awaiting resolution
+
+Schemas: `reference/schemas.md`. Lifecycle (status state machines): `reference/lifecycle.md`. Read those before structural changes.
+
+## When to create what
+
+### Decision (D-NNN)
+A journal note becomes a Decision when at least two are true:
+- It would be confusing to a future you without rationale
+- It affects how future work in this project will be done
+- It has alternatives that were considered and rejected
+- It will likely be referenced from other entities
+
+Examples: "use Split-K decomposition", "Kuairand-1K as primary benchmark", "Compose Navigation 3 over Navigation 2".
+
+### Experiment (E-NNN)
+Any run that produces a result you might cite later. SLA-style benchmark with hypothesis, or an eval run for an LLM app.
+
+### Question (Q-NNN)
+Concrete unresolved question that won't be answered in this session. Don't create one for things you'll figure out in the next 30 minutes — those are journal notes.
+
+## Scripts
+
+All scripts assume CWD is the project root (where `docs/atlas/` lives).
+
+### `new.py --type D|E|Q "<title>"`
+Creates the next entity. Reads `docs/atlas/_templates/<type>.md`, assigns next available ID, fills placeholders, prints the new file path. Open it and fill in the body sections.
+
+```bash
+python ~/.claude/skills/atlas-entity/scripts/new.py --type D "use CUDA graphs for dispatch"
+# -> docs/atlas/decisions/D-012-use-cuda-graphs-for-dispatch.md
+```
+
+### `supersede.py <old> <new>`
+Bidirectional supersedes between two decisions. Sets `old.status=superseded`, appends `new` to `old.superseded-by`, appends `old` to `new.supersedes`.
+
+### `close_question.py <q-id> --by <ref> | --wontfix`
+Closes a question. `<ref>` is an entity id (e.g. D-012) or journal filename. Status becomes `answered`, `merged-into-D`, or `wontfix`.
+
+### `reindex.py [--type D|E|Q]`
+Rebuilds `_index.md` from entity frontmatter. Safe to run unconditionally. Run after any new/supersede/close.
+
+### `validate.py`
+Checks orphan refs, bidirectional consistency, status legality, required fields. Run before committing entity changes. Exits non-zero on errors.
+
+## Standard workflows
+
+### Long-term decision made
+1. Confirm with the user it meets the criteria above
+2. `new.py --type D "<title>"`
+3. Open the returned path; fill Context / Decision / Rationale / Consequences / Alternatives
+4. Set `status: active` (template defaults to `planned`, which means "documented but not yet adopted" — most newly-recorded decisions are immediately in effect)
+5. If supersedes existing: `supersede.py <old-id> <new-id>`
+6. If answers an open question: `close_question.py <q-id> --by <new-id>`
+7. `reindex.py` then `validate.py`
+
+**Legal status values** (validated by `validate.py`):
+- **D**: `planned | active | superseded | rejected` — *not* `accepted`/`adopted`/`approved`; atlas uses `active`
+- **E**: `planned | running | completed | abandoned`
+- **Q**: `open | answered | wontfix | merged-into-D`
+
+Full state machines: `reference/lifecycle.md`.
+
+### Experiment lifecycle
+1. `new.py --type E "<title>"` at planning time, fill Hypothesis + Setup
+2. When run starts, edit status to `running`, append Run log entries
+3. When done, fill Result + Conclusion, edit status to `completed`
+4. `reindex.py` then `validate.py`
+
+### Question raised
+1. `new.py --type Q "<question>"`
+2. Fill Why-this-matters / Context / Investigation-needed
+3. `reindex.py`
+
+### Reference an entity by id ("see D-007")
+Read directly: glob `docs/atlas/decisions/D-007-*.md`.
+
+## Out of scope for this skill
+- Writing journal entries → `atlas-session-end` skill
+- Proposing entity promotions from journal → `atlas-compact` skill
+- Loading session context → `atlas-session-start` skill
+- Brainstorming requirements → `grill-me` skill
