@@ -6,7 +6,7 @@
 
 *No active entries.*
 
-## Recent closed (last 14 days, 10)
+## Recent closed (last 14 days, 11)
 
 | Date | Entry | Tags | Result |
 |------|-------|------|--------|
@@ -15,6 +15,7 @@
 | 2026-05-28 | [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md) | skills, triggers, journal, using-atlas, review-followup | passed |
 | 2026-05-28 | [2026-05-28-formalize-progressive-disclosure-conventions](2026-05-28-formalize-progressive-disclosure-conventions.md) | skills, data-model, orient, naming, progressive-disclosure | passed |
 | 2026-05-28 | [2026-05-28-grill-me-cross-check-decisions-glossary](2026-05-28-grill-me-cross-check-decisions-glossary.md) | skills, grill-me, glossary, decisions, grill-with-docs | passed |
+| 2026-05-28 | [2026-05-28-orient-coverage-and-project-authoring](2026-05-28-orient-coverage-and-project-authoring.md) | skills, orient, project-md, progressive-disclosure, authoring | passed |
 | 2026-05-28 | [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md) | skills, scripts, journal, dogfood, agent-ergonomics | passed |
 | 2026-05-28 | [2026-05-28-sharpen-decision-recognition-criteria](2026-05-28-sharpen-decision-recognition-criteria.md) | skills, using-atlas, atlas-entity, decisions, recognition | passed |
 | 2026-05-28 | [2026-05-28-strip-project-entity-refs-from-distributed-skills](2026-05-28-strip-project-entity-refs-from-distributed-skills.md) | skills, distribution, hygiene, using-atlas | passed |
@@ -26,6 +27,7 @@
 - **agent-behavior** (1): 2026-05-28
 - **agent-ergonomics** (1): 2026-05-28
 - **atlas-entity** (1): 2026-05-28
+- **authoring** (1): 2026-05-28
 - **data-model** (2): 2026-05-28, 2026-05-27
 - **decisions** (2): 2026-05-28, 2026-05-28
 - **distribution** (1): 2026-05-28
@@ -40,13 +42,14 @@
 - **hygiene** (1): 2026-05-28
 - **journal** (2): 2026-05-28, 2026-05-28
 - **naming** (1): 2026-05-28
-- **orient** (1): 2026-05-28
-- **progressive-disclosure** (1): 2026-05-28
+- **orient** (2): 2026-05-28, 2026-05-28
+- **progressive-disclosure** (2): 2026-05-28, 2026-05-28
+- **project-md** (1): 2026-05-28
 - **recognition** (1): 2026-05-28
 - **review-followup** (1): 2026-05-28
 - **roadmap** (1): 2026-05-27
 - **scripts** (1): 2026-05-28
-- **skills** (9): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
+- **skills** (10): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
 - **transparency** (1): 2026-05-28
 - **triggers** (1): 2026-05-28
 - **using-atlas** (3): 2026-05-28, 2026-05-28, 2026-05-28
@@ -54,12 +57,13 @@
 
 ## By month (archive)
 
-### 2026-05 (10 entries)
+### 2026-05 (11 entries)
 - 2026-05-28 [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md)
 - 2026-05-28 [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md)
 - 2026-05-28 [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md)
 - 2026-05-28 [2026-05-28-formalize-progressive-disclosure-conventions](2026-05-28-formalize-progressive-disclosure-conventions.md)
 - 2026-05-28 [2026-05-28-grill-me-cross-check-decisions-glossary](2026-05-28-grill-me-cross-check-decisions-glossary.md)
+- 2026-05-28 [2026-05-28-orient-coverage-and-project-authoring](2026-05-28-orient-coverage-and-project-authoring.md)
 - 2026-05-28 [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md)
 - 2026-05-28 [2026-05-28-sharpen-decision-recognition-criteria](2026-05-28-sharpen-decision-recognition-criteria.md)
 - 2026-05-28 [2026-05-28-strip-project-entity-refs-from-distributed-skills](2026-05-28-strip-project-entity-refs-from-distributed-skills.md)

@@ -4,6 +4,13 @@
 This file is the project's constitution: background, long-term goals,
 hard constraints, and shared vocabulary. Read by agents at session start
 (via CLAUDE.md). Keep it stable — short-term plans go in docs/atlas/ROADMAP.md.
+
+Authoring tip — orient extracts this file as a session-start summary, so write
+for extraction: lead each prose section with a self-contained first sentence
+(orient shows it as the headline), and keep Non-goals / Hard constraints as
+short bullet lists (orient inlines those in full — they're the guardrails).
+Keep "Current stage" to a single lifecycle word; the live milestone lives in
+ROADMAP.md, so don't restate it here or it goes stale.
 -->
 
 ## Background

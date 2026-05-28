@@ -39,11 +39,6 @@ def extract_section(body, heading_pattern):
     return m.group(1).strip() if m else ""
 
 
-def first_lines(text, n=2):
-    lines = [ln for ln in text.split("\n") if ln.strip()]
-    return "\n".join(lines[:n])
-
-
 def count_bullets(text):
     return sum(1 for ln in text.split("\n") if ln.lstrip().startswith(("-", "*")))
 
@@ -108,6 +103,13 @@ def headline_for_journal(filename):
     return first_sentence(sec) if sec else ""
 
 
+# Guardrail sections inlined in full — violating them is costly, so the agent
+# should see them without a second read. Other sections are named in the menu
+# so the agent knows they exist and can open PROJECT.md on demand.
+PROJECT_INLINE_SECTIONS = ["Non-goals", "Hard constraints"]
+PROJECT_RENDERED = {"Current stage", "Background", "Glossary", *PROJECT_INLINE_SECTIONS}
+
+
 def render_project(out, project_md):
     if project_md is None:
         out.append("## Project")
@@ -121,16 +123,34 @@ def render_project(out, project_md):
         title = m.group(1).strip()
 
     out.append("## Project (PROJECT.md)")
+
     stage = extract_section(project_md, "Current stage")
-    bg = extract_section(project_md, "Background")
-    glossary = extract_section(project_md, "Glossary")
     if stage:
-        out.append(f"- **Stage**: {first_lines(stage, 1)}")
+        out.append(f"- **Stage**: {first_sentence(stage)}")
+
+    bg = extract_section(project_md, "Background")
     if bg:
-        out.append(f"- **Background**: {first_lines(bg, 2)}")
+        out.append(f"- **Background**: {first_sentence(bg)}")
+
+    for name in PROJECT_INLINE_SECTIONS:
+        sec = extract_section(project_md, re.escape(name))
+        bullets = bullet_lines(sec) if sec else []
+        if bullets:
+            out.append(f"- **{name}**:")
+            for b in bullets:
+                out.append(f"    - {b.lstrip('-* ').strip()}")
+
+    glossary = extract_section(project_md, "Glossary")
     if glossary:
         n = count_bullets(glossary)
         out.append(f"- **Glossary**: {n} terms (see PROJECT.md)")
+
+    # Menu of the sections not already rendered above, so nothing stays invisible.
+    headings = re.findall(r"^##\s+(.+?)\s*$", project_md, re.MULTILINE)
+    remaining = [h for h in headings if h not in PROJECT_RENDERED]
+    if remaining:
+        out.append(f"- **More in PROJECT.md**: {', '.join(remaining)}")
+
     out.append("")
     return title
 
@@ -145,7 +165,12 @@ def render_roadmap(out):
     out.append("## Roadmap (docs/atlas/ROADMAP.md)")
     milestone = extract_section(roadmap, "Current milestone")
     if milestone:
-        out.append(f"- **Current milestone**: {first_lines(milestone, 2)}")
+        lines = [ln for ln in milestone.split("\n") if ln.strip()]
+        header = lines[0].strip() if lines else ""
+        out.append(f"- **Current milestone**: {header}")
+        body = first_sentence("\n".join(lines[1:]))
+        if body:
+            out.append(f"  → {body}")
     out.append("")
 
 

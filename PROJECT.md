@@ -7,8 +7,8 @@ This file is the project's constitution. Read by agents at session start
 
 ## Background
 
-Long-running AI-assisted projects (research, app dev) suffer from three
-recurring failure modes:
+Atlas is an operational-memory framework for long-running AI-assisted projects,
+research and dev alike. It counters three failure modes that compound over time:
 
 1. **Context rot** — agent quality degrades as session length grows
 2. **Cross-session amnesia** — each new session starts blank, decisions lost
@@ -65,9 +65,7 @@ AI-assisted workflow into reusable conventions and tooling.
 
 ## Current stage
 
-prototype — phase 1 (atlas-entity skill + data templates + install/init scripts) is
-implemented and ready to dogfood; phase 2 (session-lifecycle skills + grill-me port +
-verification enforcement) being designed.
+prototype — see docs/atlas/ROADMAP.md for the current milestone.
 
 ## References
 
