@@ -45,7 +45,9 @@ If you find yourself writing two paragraphs into the first section, move the ext
 ## When to create what
 
 ### Decision (D-NNN)
-A journal note becomes a Decision when at least two are true:
+The core test (also in `using-atlas`, where you make this call before invoking this skill): a decision is a *constraint on future choices*, not *important work*. If three months from now you'd need to dig up the rationale to proceed on related work, it's a D; if it ends with this work unit, it's a journal note.
+
+Concretely, a journal note becomes a Decision when at least two are true:
 - It would be confusing to a future you without rationale
 - It affects how future work in this project will be done
 - It has alternatives that were considered and rejected

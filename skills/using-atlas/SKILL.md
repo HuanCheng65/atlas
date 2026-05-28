@@ -27,7 +27,7 @@ When discussing the actual work, **translate framework vocabulary into plain pro
 
 ### Layer 2: Operational announces (one-line, parenthetical, post-hoc)
 
-When you open a journal, append a log, write a Plan, or close work, a brief one-line announce is appropriate. **File paths are fine and useful here** — the journal is plain text + git (D-001), so the file *is* the durable record the user can later open, `git log`, or edit. The path is a pointer, not framework noise.
+When you open a journal, append a log, write a Plan, or close work, a brief one-line announce is appropriate. **File paths are fine and useful here** — the journal is plain text + git, so the file *is* the durable record the user can later open, `git log`, or edit. The path is a pointer, not framework noise.
 
 What to drop is the **modifier verbiage** that describes the framework rather than the data:
 
@@ -134,6 +134,8 @@ This section exists because trigger conditions hidden inside other skills' bodie
 | Work is wrapping up | Before close, ask yourself: "did this work establish a long-term choice or surface an open question?" If yes, propose D / Q before closing |
 
 **Failure mode to prevent:** "the user didn't ask me to record this, so I'll skip it." If you catch yourself thinking that about something that meets the D/Q/E criteria above, the trigger fired — propose it.
+
+**Is it a D, or just a journal note?** The distinction people get wrong: a decision is a *constraint on future choices*, not *important work*. A big refactor is journal; the "from now on this layer uses pattern X" the refactor established is the decision. Quick test — *"Three months from now, building something related, will I need to dig up this rationale to know how to proceed?"* Yes → propose D. No → it stays in the journal. Two signals that push toward D: the choice is expensive to reverse, and it had real alternatives that were weighed and rejected (a single forced path is a method, not a decision). This heuristic lives here, in the persistently-loaded surface, on purpose — you make this call *before* invoking `atlas-entity`, and a skill's body only loads *after* you invoke it, so the criteria can't live there. atlas-entity's body holds the fuller checklist as a backstop.
 
 The skill-specific *operational* details (which script to call, what frontmatter to fill, when to ask for confirmation on the action itself) live in each skill's body. Only the **recognition** lives here.
 
