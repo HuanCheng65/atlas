@@ -6,7 +6,7 @@
 
 *No active entries.*
 
-## Recent closed (last 14 days, 7)
+## Recent closed (last 14 days, 8)
 
 | Date | Entry | Tags | Result |
 |------|-------|------|--------|
@@ -14,6 +14,7 @@
 | 2026-05-28 | [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md) | skills, hooks, dogfood, harness | passed |
 | 2026-05-28 | [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md) | skills, triggers, journal, using-atlas, review-followup | passed |
 | 2026-05-28 | [2026-05-28-formalize-progressive-disclosure-conventions](2026-05-28-formalize-progressive-disclosure-conventions.md) | skills, data-model, orient, naming, progressive-disclosure | passed |
+| 2026-05-28 | [2026-05-28-grill-me-cross-check-decisions-glossary](2026-05-28-grill-me-cross-check-decisions-glossary.md) | skills, grill-me, glossary, decisions, grill-with-docs | passed |
 | 2026-05-28 | [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md) | skills, scripts, journal, dogfood, agent-ergonomics | passed |
 | 2026-05-28 | [2026-05-28-sync-readmes-with-current-skill-set](2026-05-28-sync-readmes-with-current-skill-set.md) | docs, housekeeping | passed |
 | 2026-05-27 | [2026-05-27-tighten-roadmap-scope](2026-05-27-tighten-roadmap-scope.md) | roadmap, skills, data-model, dogfood | passed |
@@ -23,8 +24,12 @@
 - **agent-behavior** (1): 2026-05-28
 - **agent-ergonomics** (1): 2026-05-28
 - **data-model** (2): 2026-05-28, 2026-05-27
+- **decisions** (1): 2026-05-28
 - **docs** (1): 2026-05-28
 - **dogfood** (3): 2026-05-28, 2026-05-28, 2026-05-27
+- **glossary** (1): 2026-05-28
+- **grill-me** (1): 2026-05-28
+- **grill-with-docs** (1): 2026-05-28
 - **harness** (1): 2026-05-28
 - **hooks** (1): 2026-05-28
 - **housekeeping** (1): 2026-05-28
@@ -35,7 +40,7 @@
 - **review-followup** (1): 2026-05-28
 - **roadmap** (1): 2026-05-27
 - **scripts** (1): 2026-05-28
-- **skills** (6): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
+- **skills** (7): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
 - **transparency** (1): 2026-05-28
 - **triggers** (1): 2026-05-28
 - **using-atlas** (1): 2026-05-28
@@ -43,11 +48,12 @@
 
 ## By month (archive)
 
-### 2026-05 (7 entries)
+### 2026-05 (8 entries)
 - 2026-05-28 [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md)
 - 2026-05-28 [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md)
 - 2026-05-28 [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md)
 - 2026-05-28 [2026-05-28-formalize-progressive-disclosure-conventions](2026-05-28-formalize-progressive-disclosure-conventions.md)
+- 2026-05-28 [2026-05-28-grill-me-cross-check-decisions-glossary](2026-05-28-grill-me-cross-check-decisions-glossary.md)
 - 2026-05-28 [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md)
 - 2026-05-28 [2026-05-28-sync-readmes-with-current-skill-set](2026-05-28-sync-readmes-with-current-skill-set.md)
 - 2026-05-27 [2026-05-27-tighten-roadmap-scope](2026-05-27-tighten-roadmap-scope.md)

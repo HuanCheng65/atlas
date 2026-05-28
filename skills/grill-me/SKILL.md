@@ -22,6 +22,17 @@ Follow the hard rules below: one question at a time, walk down the tree, propose
 3. **Provide your recommended answer with every question.** Phrase it: "My guess: X. Is that right?" — never "What do you think?".
 4. **Explore the codebase before asking.** If reading a file, running `git log`, or `ls`-ing a directory would answer the question, do that first and skip the question.
 5. **Stop when shared understanding is reached, not when every detail is settled.** Most plans need 8–15 resolved questions. If you've asked more than 20, you're over-grilling — wrap up.
+6. **Cross-check answers against what's already decided.** Active decisions (D-NNN) and the PROJECT.md glossary are already in your context — orient loaded them at session start. When an answer touches one, act on it before walking further down the tree. See "Grill against what's already decided" below.
+
+## Grill against what's already decided
+
+Plain grilling interrogates a plan in isolation. Because orient has already loaded the active decisions and the glossary, you can interrogate it against what the project has *already settled*. This is the one move that separates a good grill from a shallow one — and it runs *per answer*, as new directions surface, not once up front (that up-front pass is orient's job at session start; the two are complementary, don't consolidate them).
+
+Two moments to watch for during the interview:
+
+- **An answer conflicts with an active decision.** Surface it immediately, in plain content language — describe *what was decided and why*, never the `D-NNN` ID (see `using-atlas`'s plain-language rule). Example: "That cuts against something we settled earlier — skill activation is event-driven, not session-phase-driven, because phase-driven triggers didn't fire reliably. Are we revisiting that, or does the plan need to fit it?" If the user genuinely wants to overturn the prior decision, **do not edit the decision yourself** — finish the grill, then route the supersede through `atlas-entity`. grill-me writes plans, not decision records.
+
+- **A term gets coined or sharpened.** When the interview lands on a name for a recurring concept, or pins down a fuzzy word, fold it into the question like any other guess: "This pattern needs a name — my guess: 'shadow-replay' = re-running captured prod traffic against a candidate build. Add that to the glossary?" On confirmation, edit the **Glossary section of PROJECT.md** directly (it's plain markdown — keep it a glossary, definitions only, no specs or notes). Don't batch these to the end; capture each term as it resolves.
 
 ## Example
 
@@ -174,3 +185,4 @@ Carry the entry's slug in your conversation memory through the rest of the sessi
 - When work completes, invoke `atlas-log` to write a completion entry that references the journal file and finalizes Keepers / Throwaways.
 - If during execution a long-term architectural choice gets made (something deserving D-NNN), invoke `atlas-entity` to record it. Do not bury it inside the Plan file.
 - If during execution a new unresolved question surfaces, invoke `atlas-entity` to record it as Q-NNN.
+- If grilling surfaces that the plan overturns an active decision, invoke `atlas-entity` to supersede it — grill-me surfaces the conflict but never edits the decision record directly.
