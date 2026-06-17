@@ -8,6 +8,7 @@ Usage:
 """
 import argparse
 import datetime
+import json
 import re
 import sys
 from pathlib import Path
@@ -21,7 +22,14 @@ TYPE_TEMPLATE = {"D": "decision.md", "E": "experiment.md", "Q": "question.md"}
 
 def slugify(title):
     s = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
-    return s[:60]
+    if len(s) > 70:
+        s = s[:70].rsplit("-", 1)[0]
+        print(
+            f"NOTE: slug truncated to {s!r} — the title exceeds the ~70-char "
+            "slug rule, consider tightening it",
+            file=sys.stderr,
+        )
+    return s
 
 
 def next_id(type_letter):
@@ -52,6 +60,11 @@ def main():
     today = datetime.date.today().isoformat()
 
     content = template_path.read_text(encoding="utf-8")
+    # The frontmatter title must be YAML-escaped (titles may contain ": " etc.);
+    # a JSON string is a valid YAML double-quoted scalar. Body {{TITLE}} stays raw.
+    content = content.replace(
+        "title: {{TITLE}}", "title: " + json.dumps(args.title, ensure_ascii=False), 1
+    )
     content = (
         content.replace("{{ID}}", entity_id)
         .replace("{{TITLE}}", args.title)
@@ -63,6 +76,10 @@ def main():
     if out_path.exists():
         sys.exit(f"ERROR: file already exists: {out_path}")
     out_path.write_text(content, encoding="utf-8")
+
+    import reindex  # noqa: E402  (same dir, path set above)
+    reindex.build_index_for(args.type)
+
     print(out_path)
 
 

@@ -25,19 +25,18 @@ When discussing the actual work, **translate framework vocabulary into plain pro
   - Good: "from the CUDA graphs work last week"
 - **Open questions / experiments**: same — describe the question / experiment, don't say "Q-003" or "E-005".
 
-### Layer 2: Operational announces (one-line, parenthetical, post-hoc)
+### Layer 2: Framework operations — silent by default
 
-When you open a journal, append a log, write a Plan, or close work, a brief one-line announce is appropriate. **File paths are fine and useful here** — the journal is plain text + git, so the file *is* the durable record the user can later open, `git log`, or edit. The path is a pointer, not framework noise.
+Opening, appending, closing, reindexing: bookkeeping. **Do it silently — no "(opened …)", "(logged: …)", "(closed — passed)" lines.** The record reaches the user through the work unit's commit (see "Atlas changes ride work commits" below), a better audit channel than transient chat lines. If something just logged matters to the user right now — a result, a conclusion — say it in your normal reply *as work content*, unwrapped.
 
-What to drop is the **modifier verbiage** that describes the framework rather than the data:
+The framework speaks **only when it needs the user**:
 
-- Good: `(opened docs/atlas/journal/2026-05-27-cuda-graphs.md)`
-- Good: `(logged: P99 30.9 → 27.4ms, target hit)` — content-only also fine
-- Good: `(closed — verification passed)`
-- Bad: `(opened journal/2026-...md to track this work — this is a new active journal entry)` — extra framework descriptor verbiage
-- Bad: `(appended to the active journal entry: …)` — "active journal entry" is framework abstraction
+- **Entity confirmation** — proposing a D / Q / E before creating it (batched at natural seams; see the trigger table)
+- **Plan review** — a Plan is ready; the user must see where it lives and sign off
+- **Binding ambiguity** — "are we continuing the X work, or starting something new?"
+- **Conflict alert** — the user's stated goal contradicts a Working rule or active decision. This one is immediate, never batched: it is the framework's first-order reason to exist.
 
-A rough rule: file paths and short content descriptions are fine; phrases like "active entry", "this journal entry", "to track this work", "I'll keep a log" that *describe the framework operation* in English are what to strip.
+When the framework does speak, file paths are fine — the journal is plain text + git, so the path is a pointer the user can open. What stays banned is framework-descriptor verbiage ("active journal entry", "to track this work", "I'll keep a log") wrapped around it.
 
 ### Exceptions — name framework artifacts directly when:
 
@@ -51,7 +50,7 @@ Internal instructions in this and other atlas skills continue to use precise fra
 
 These three steps happen **before** you respond to the user's first message.
 
-1. **Run atlas-orient.** Invoke the `atlas-orient` skill once, silently. It returns a markdown summary of current project state — read it fully, bind to it internally. Do NOT quote it back to the user.
+1. **Run atlas-orient.** Invoke the `atlas-orient` skill once. The `Skill(atlas-orient)` call must be your first action after using-atlas loads — no narration around it, no "I'll first orient…", no "let me load state". It returns a markdown summary of current project state — read it fully, bind to it internally. Do NOT quote it back to the user.
 
 2. **Enter watching mode.** Hold an internal "intent buffer" while reading the user's first substantive message. Do not yet bootstrap any journal entry; do not yet invoke other atlas skills. Just watch.
 
@@ -85,13 +84,12 @@ If multiple active entries plausibly match, ask the user once which one this con
 ```bash
 python3 ~/.claude/skills/atlas-log/scripts/open.py \
     --slug <kebab-case-slug> \
-    --project <project name from PROJECT.md> \
     --tags <comma,separated,tags> <<'EOF'
 <one paragraph: what this work is about, based on opening messages>
 EOF
 ```
 
-Optional flags: `--related slug1,D-007` to link to existing entries / entities, `--title "Override default title"` if the slug-derived title is awkward.
+The project name is derived from PROJECT.md's H1; pass `--project` only to override. Optional flags: `--related slug1,D-007` to link to existing entries / entities, `--title "Override default title"` if the slug-derived title is awkward.
 
 The script generates the date prefix, `opened` timestamp, and full frontmatter scaffolding. **Never write timestamps by hand.** If you find yourself wanting to use Write to create the entry directly, stop — use `open.py`. The scripts exist because hand-written timestamps caused real bugs.
 
@@ -99,13 +97,9 @@ The script generates the date prefix, `opened` timestamp, and full frontmatter s
 
 Skip the full Plan sections (Decisions resolved / Steps / Verification / Keepers / Throwaways). Those come from `grill-me` if the user wants formal planning, OR emerge later if work turns substantial.
 
-`open.py` prints the path of the created file on stdout. Hold the slug in conversation memory. **Announce briefly** — the path is fine; drop framework-descriptor verbiage:
+`open.py` prints the path of the created file on stdout. Hold the slug in conversation memory. **Do not announce** — the entry is bookkeeping and travels with the work's commits; the user encounters it at the next speak-moment (plan review) or in the commit diff. See "Speak in plain project language" above.
 
-> (opened docs/atlas/journal/2026-05-27-<slug>.md)
-
-If the user is mid-flow on substantive work, the announce can be skipped entirely. See "Speak in plain project language" above for the principle.
-
-User may immediately override ("call it Y" / "I'm not doing that") — delete the file via `rm` (no scripted "rename" yet; safe to just delete and re-run `open.py` if needed).
+If the user later objects to the entry (wrong slug, wrong work), delete the file via `rm` and re-run `open.py` (no scripted "rename" yet).
 
 ### C. Defer
 
@@ -123,21 +117,25 @@ If you've deferred for 3+ substantive exchanges and intent is still unclear, ask
 
 This section exists because trigger conditions hidden inside other skills' bodies don't fire — the agent only loads those bodies *after* deciding to invoke them, so the trigger that should drive invocation is invisible at the moment that matters. The cross-skill triggers live **here**, in using-atlas, which is loaded at session start and stays in context the whole session.
 
-**You are responsible for recognizing these moments as they happen.** Do not wait for the user to label them — they usually won't, because they're thinking about the work, not the framework. When you notice a trigger, route immediately, announce in one line (per the plain-language rule above), and proceed.
+**You are responsible for recognizing these moments as they happen.** Do not wait for the user to label them — they usually won't, because they're thinking about the work, not the framework. **Recognition is immediate; proposing is batched**: hold recognized D/Q/E candidates in a session buffer and propose them at the next natural seam — work wrap-up, before a close, a user pause — instead of interrupting mid-flow. The one exception is a conflict with a Working rule or active decision: surface that immediately.
 
 | Agent-recognized moment | Action |
 |---|---|
-| A long-term architectural / framework / strategic choice gets settled in conversation — *even if no one called it a decision*, even if it emerged from back-and-forth refinement rather than an explicit "let's decide X" | Propose recording as D-NNN via `atlas-entity`. Default to proposing; only skip if you can articulate why it fails the D criteria (not long-term, no alternatives considered, won't be referenced) |
-| An unresolved question surfaces that won't be answered in this session | Propose Q-NNN via `atlas-entity` |
-| A measurement / experiment produces a result that might be cited later | Propose E-NNN via `atlas-entity` |
-| You completed a substantive unit of work | Append via `atlas-log` (no pre-confirmation) |
-| Work is wrapping up | Before close, ask yourself: "did this work establish a long-term choice or surface an open question?" If yes, propose D / Q before closing |
+| A long-term architectural / framework / strategic choice gets settled in conversation — *even if no one called it a decision*, even if it emerged from back-and-forth refinement rather than an explicit "let's decide X" | Propose recording as D-NNN via `atlas-entity` (at the next seam). Default to proposing; only skip if you can articulate why it fails the D criteria (not long-term, no alternatives considered, won't be referenced) |
+| An unresolved question surfaces that won't be answered in this session | Propose Q-NNN via `atlas-entity` (at the next seam) |
+| A measurement / experiment produces a result that might be cited later | Propose E-NNN via `atlas-entity` (at the next seam) |
+| You completed a substantive unit of work | Append via `atlas-log` — silently, no pre-confirmation, no announce |
+| Work is wrapping up | The canonical seam: flush the candidate buffer — "did this work establish a long-term choice or surface an open question?" Propose D / Q before closing |
 
-**Failure mode to prevent:** "the user didn't ask me to record this, so I'll skip it." If you catch yourself thinking that about something that meets the D/Q/E criteria above, the trigger fired — propose it.
+**Failure mode to prevent:** "the user didn't ask me to record this, so I'll skip it." If you catch yourself thinking that about something that meets the D/Q/E criteria above, the trigger fired — propose it (at the seam). Batching changes *when* you propose, never *whether*.
 
 **Is it a D, or just a journal note?** The distinction people get wrong: a decision is a *constraint on future choices*, not *important work*. A big refactor is journal; the "from now on this layer uses pattern X" the refactor established is the decision. Quick test — *"Three months from now, building something related, will I need to dig up this rationale to know how to proceed?"* Yes → propose D. No → it stays in the journal. Two signals that push toward D: the choice is expensive to reverse, and it had real alternatives that were weighed and rejected (a single forced path is a method, not a decision). This heuristic lives here, in the persistently-loaded surface, on purpose — you make this call *before* invoking `atlas-entity`, and a skill's body only loads *after* you invoke it, so the criteria can't live there. atlas-entity's body holds the fuller checklist as a backstop.
 
 The skill-specific *operational* details (which script to call, what frontmatter to fill, when to ask for confirmation on the action itself) live in each skill's body. Only the **recognition** lives here.
+
+## Atlas changes ride work commits
+
+Atlas data changes (journal entries, entities, indexes, PROJECT.md edits) are part of the work unit they describe. When committing, stage them **with the work's own commits** — never as standalone "update atlas docs" commits. An atlas-only commit is legitimate only when atlas content is itself the work (a design discussion whose product is decision records, a bootstrap, a compact run), and its message names the content ("settle decision positioning: ADR log + constitution split"), never the framework ("update atlas docs"). The commit doubles as the transparency channel: the user reviews the work diff and sees its record riding along — that is what replaced chat announces.
 
 ## Routing (reactive — when the user names the action)
 
@@ -149,17 +147,18 @@ When the user explicitly names what they want, route accordingly:
 | Asks "what were we working on" or context seems stale mid-session | `atlas-orient` — re-load state |
 | Asks to list / search / audit decisions, questions, journal entries | `atlas-entity` (entities) or direct file reads (journal) |
 | Onboarding existing project to atlas | `atlas-bootstrap` — rare, once per project |
-| Periodic / milestone review | `atlas-compact` — planned |
+| Periodic maintenance ("clean up the store", accepting orient's backlog hint) | `atlas-compact` — runs unconfirmed, lands as one commit |
 
 ## Anti-patterns
 
 - **DO NOT** skip session-start setup. Always run atlas-orient first.
-- **DO NOT** ask "should I open a journal entry?" before bootstrapping. Bootstrap silently when criteria met, announce after (in plain language — see top of this skill).
+- **DO NOT** narrate the setup sequence. The `Skill(using-atlas)` and `Skill(atlas-orient)` calls must be your first actions — no "I'll start by…", no "let me orient…", no acknowledgment text before them. Your first prose to the user comes *after* state is loaded.
+- **DO NOT** ask "should I open a journal entry?" before bootstrapping. Bootstrap silently when criteria met — no announce either.
 - **DO NOT** bootstrap an entry for queries, read-only requests, or greetings.
-- **DO NOT** re-invoke using-atlas mid-session. Once per session. If context drifts, re-invoke `atlas-orient` to refresh state.
+- **DO NOT** re-invoke using-atlas within an intact context window — once per context window. After a clear or compact the context is rebuilt and the session-start hook demands it again; that re-invocation is correct. On resume the conversation context survives: do not re-run using-atlas, refresh state with `atlas-orient` instead.
 - **DO NOT** quote orient's output back to the user. Use it as your internal context.
 - **DO NOT** create journal entries from a conversation that's just discussion / exploration. Wait for concrete work intent.
-- **DO NOT** drag framework artifacts into *substantive* discussion — no `D-NNN`, `Q-NNN`, `E-NNN`, or journal filenames as references. Translate to content-level language. Operational one-line announces with file paths are a separate layer and *are* allowed. See "Speak in plain project language" above.
+- **DO NOT** drag framework artifacts into *substantive* discussion — no `D-NNN`, `Q-NNN`, `E-NNN`, or journal filenames as references. Translate to content-level language. At legitimate speak-moments (plan review, entity proposals, conflicts), file paths and entity names are allowed; announce-style status lines are not. See "Speak in plain project language" above.
 
 ## Cross-references
 
@@ -168,4 +167,4 @@ When the user explicitly names what they want, route accordingly:
 - `atlas-log` — append to / close active journal entries
 - `atlas-entity` — create D / E / Q
 - `atlas-bootstrap` — onboard existing project (once per project)
-- `atlas-compact` — periodic derivation (planned)
+- `atlas-compact` — periodic maintenance: backlog + consolidation

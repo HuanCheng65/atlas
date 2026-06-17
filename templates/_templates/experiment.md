@@ -1,5 +1,8 @@
 ---
 id: {{ID}}
+# Title rules:
+#   - Title states what's being tested as a claim or comparison. "Does X improve Y?" / "X vs Y on Z" — not just "X experiment".
+#   - Self-contained: readable from the index alone.
 title: {{TITLE}}
 date: {{DATE}}
 status: planned
@@ -16,7 +19,7 @@ conclusion: null
 # {{TITLE}}
 
 ## Hypothesis
-<!-- 一句话主张，可证伪 -->
+<!-- ONE SENTENCE, falsifiable, self-contained. This sentence gets pulled into the orient summary. -->
 
 ## Setup
 <!-- 数据集、对照组、关键超参 -->

@@ -2,13 +2,13 @@
 id: Q-002
 title: Topic auto-promotion heuristic for atlas-compact
 date: 2026-05-27
-status: open
+status: merged-into-D
 tags: [atlas-compact, topics]
 related: []
 source: bootstrap
 source-journal: null
 severity: medium
-answered-by: null
+answered-by: D-022
 ---
 
 # Topic auto-promotion heuristic for atlas-compact

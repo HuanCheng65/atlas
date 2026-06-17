@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Validate atlas entities: orphan refs, bidirectional consistency, frontmatter.
+"""Validate atlas entities: orphan refs, bidirectional consistency, frontmatter,
+and the PROJECT.md constitution pairing (triage: promoted ⟺ a `(D-NNN)` pointer
+in PROJECT.md; every pointer resolves to an existing, active decision).
 
 Usage:
     validate.py
 
 Exits non-zero on any error.
 """
+import re
 import sys
 from pathlib import Path
 
@@ -20,9 +23,15 @@ VALID_STATUS = {
     "Q": {"open", "answered", "wontfix", "merged-into-D"},
 }
 
+VALID_TRIAGE = {"pending", "promoted", "archival"}
+
+# A constitution pointer is `(D-NNN)` in PROJECT.md (any section — Hard
+# constraints lines carry pointers too, not just Working rules).
+POINTER_RE = re.compile(r"\((D-\d{3})\)")
+
 REQUIRED_BASE = ["id", "title", "date", "status", "tags", "related", "source-journal"]
 REQUIRED_BY_TYPE = {
-    "D": ["supersedes", "superseded-by", "affects"],
+    "D": ["supersedes", "superseded-by", "affects", "triage"],
     "E": ["hypothesis", "config", "result", "artifacts", "conclusion"],
     "Q": ["severity", "answered-by"],
 }
@@ -57,6 +66,10 @@ def main():
         status = meta.get("status")
         if status is not None and status not in VALID_STATUS.get(t, set()):
             err(f"{eid}: illegal status `{status}` for type {t}")
+        if t == "D":
+            triage = meta.get("triage")
+            if triage is not None and triage not in VALID_TRIAGE:
+                err(f"{eid}: illegal triage `{triage}` (must be one of {sorted(VALID_TRIAGE)})")
 
     # reference checks
     def check_refs(eid, meta, key):
@@ -106,6 +119,30 @@ def main():
             ab = meta.get("answered-by")
             if not (isinstance(ab, str) and ab.startswith("D-")):
                 err(f"{eid}: status=merged-into-D but answered-by is not a D-id ({ab!r})")
+
+    # constitution pairing: triage: promoted ⟺ (D-NNN) pointer in PROJECT.md
+    project_path = Path("PROJECT.md")
+    project_md = project_path.read_text(encoding="utf-8") if project_path.exists() else None
+    pointers = set(POINTER_RE.findall(project_md)) if project_md else set()
+
+    promoted = {
+        eid for eid, (_, meta) in entities.items()
+        if eid.startswith("D-") and meta.get("triage") == "promoted"
+    }
+    if promoted and project_md is None:
+        err(f"decisions marked promoted ({', '.join(sorted(promoted))}) but PROJECT.md not found")
+    for eid in sorted(promoted - pointers):
+        err(f"{eid}: triage=promoted but PROJECT.md has no ({eid}) pointer")
+    for eid in sorted(pointers - promoted):
+        if eid not in entities:
+            err(f"PROJECT.md points at ({eid}) but no such decision exists")
+        else:
+            err(f"PROJECT.md points at ({eid}) but its triage is "
+                f"{entities[eid][1].get('triage')!r}, not promoted")
+    for eid in sorted(pointers & promoted):
+        if entities[eid][1].get("status") != "active":
+            err(f"PROJECT.md points at ({eid}) but its status is "
+                f"{entities[eid][1].get('status')!r}, not active — update the constitution line")
 
     if errors:
         print(f"\n{len(errors)} error(s):\n")

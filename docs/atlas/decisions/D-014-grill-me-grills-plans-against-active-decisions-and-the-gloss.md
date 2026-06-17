@@ -3,6 +3,7 @@ id: D-014
 title: grill-me grills plans against active decisions and the glossary
 date: 2026-05-28
 status: active
+triage: archival
 tags: [skills, grill-me, glossary, decisions]
 related: []
 source-journal: 2026-05-28-grill-me-cross-check-decisions-glossary.md

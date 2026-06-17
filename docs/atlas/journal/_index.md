@@ -6,50 +6,40 @@
 
 *No active entries.*
 
-## Recent closed (last 14 days, 11)
-
-| Date | Entry | Tags | Result |
-|------|-------|------|--------|
-| 2026-05-28 | [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md) | skills, ux, agent-behavior, transparency | passed |
-| 2026-05-28 | [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md) | skills, hooks, dogfood, harness | passed |
-| 2026-05-28 | [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md) | skills, triggers, journal, using-atlas, review-followup | passed |
-| 2026-05-28 | [2026-05-28-formalize-progressive-disclosure-conventions](2026-05-28-formalize-progressive-disclosure-conventions.md) | skills, data-model, orient, naming, progressive-disclosure | passed |
-| 2026-05-28 | [2026-05-28-grill-me-cross-check-decisions-glossary](2026-05-28-grill-me-cross-check-decisions-glossary.md) | skills, grill-me, glossary, decisions, grill-with-docs | passed |
-| 2026-05-28 | [2026-05-28-orient-coverage-and-project-authoring](2026-05-28-orient-coverage-and-project-authoring.md) | skills, orient, project-md, progressive-disclosure, authoring | passed |
-| 2026-05-28 | [2026-05-28-script-driven-journal-writes](2026-05-28-script-driven-journal-writes.md) | skills, scripts, journal, dogfood, agent-ergonomics | passed |
-| 2026-05-28 | [2026-05-28-sharpen-decision-recognition-criteria](2026-05-28-sharpen-decision-recognition-criteria.md) | skills, using-atlas, atlas-entity, decisions, recognition | passed |
-| 2026-05-28 | [2026-05-28-strip-project-entity-refs-from-distributed-skills](2026-05-28-strip-project-entity-refs-from-distributed-skills.md) | skills, distribution, hygiene, using-atlas | passed |
-| 2026-05-28 | [2026-05-28-sync-readmes-with-current-skill-set](2026-05-28-sync-readmes-with-current-skill-set.md) | docs, housekeeping | passed |
-| 2026-05-27 | [2026-05-27-tighten-roadmap-scope](2026-05-27-tighten-roadmap-scope.md) | roadmap, skills, data-model, dogfood | passed |
-
 ## By tag (closed)
 
 - **agent-behavior** (1): 2026-05-28
 - **agent-ergonomics** (1): 2026-05-28
 - **atlas-entity** (1): 2026-05-28
 - **authoring** (1): 2026-05-28
-- **data-model** (2): 2026-05-28, 2026-05-27
-- **decisions** (2): 2026-05-28, 2026-05-28
+- **compact** (2): 2026-06-12, 2026-06-12
+- **data-model** (3): 2026-06-12, 2026-05-28, 2026-05-27
+- **decisions** (3): 2026-06-12, 2026-05-28, 2026-05-28
+- **design** (1): 2026-06-12
 - **distribution** (1): 2026-05-28
 - **docs** (1): 2026-05-28
 - **dogfood** (3): 2026-05-28, 2026-05-28, 2026-05-27
+- **dx** (1): 2026-05-29
 - **glossary** (1): 2026-05-28
 - **grill-me** (1): 2026-05-28
 - **grill-with-docs** (1): 2026-05-28
 - **harness** (1): 2026-05-28
-- **hooks** (1): 2026-05-28
+- **hooks** (2): 2026-06-12, 2026-05-28
 - **housekeeping** (1): 2026-05-28
 - **hygiene** (1): 2026-05-28
-- **journal** (2): 2026-05-28, 2026-05-28
+- **journal** (3): 2026-06-12, 2026-05-28, 2026-05-28
+- **maintenance** (1): 2026-06-12
 - **naming** (1): 2026-05-28
-- **orient** (2): 2026-05-28, 2026-05-28
+- **orient** (3): 2026-06-12, 2026-05-28, 2026-05-28
 - **progressive-disclosure** (2): 2026-05-28, 2026-05-28
-- **project-md** (1): 2026-05-28
+- **project-md** (3): 2026-06-12, 2026-06-12, 2026-05-28
 - **recognition** (1): 2026-05-28
-- **review-followup** (1): 2026-05-28
+- **review-followup** (3): 2026-06-12, 2026-06-12, 2026-05-28
 - **roadmap** (1): 2026-05-27
-- **scripts** (1): 2026-05-28
-- **skills** (10): 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
+- **scripts** (4): 2026-06-12, 2026-06-12, 2026-06-12, 2026-05-28
+- **session-start** (1): 2026-05-29
+- **skills** (14): 2026-06-12, 2026-06-12, 2026-06-12, 2026-05-29, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-28, 2026-05-27
+- **tests** (2): 2026-06-12, 2026-06-12
 - **transparency** (1): 2026-05-28
 - **triggers** (1): 2026-05-28
 - **using-atlas** (3): 2026-05-28, 2026-05-28, 2026-05-28
@@ -57,7 +47,15 @@
 
 ## By month (archive)
 
-### 2026-05 (11 entries)
+### 2026-06 (5 entries)
+- 2026-06-12 [2026-06-12-compact-run](2026-06-12-compact-run.md)
+- 2026-06-12 [2026-06-12-fix-script-and-skill-doc-bugs-from-design-review](2026-06-12-fix-script-and-skill-doc-bugs-from-design-review.md)
+- 2026-06-12 [2026-06-12-implement-atlas-compact](2026-06-12-implement-atlas-compact.md)
+- 2026-06-12 [2026-06-12-implement-design-review-decisions](2026-06-12-implement-design-review-decisions.md)
+- 2026-06-12 [2026-06-12-resolve-design-review-findings](2026-06-12-resolve-design-review-findings.md)
+
+### 2026-05 (12 entries)
+- 2026-05-29 [2026-05-29-session-start-noise-python3-cleanup](2026-05-29-session-start-noise-python3-cleanup.md)
 - 2026-05-28 [2026-05-28-atlas-user-facing-transparency](2026-05-28-atlas-user-facing-transparency.md)
 - 2026-05-28 [2026-05-28-enforce-orient-and-interview-skills](2026-05-28-enforce-orient-and-interview-skills.md)
 - 2026-05-28 [2026-05-28-fix-trigger-location-and-journal-lifecycle](2026-05-28-fix-trigger-location-and-journal-lifecycle.md)

@@ -5,7 +5,11 @@
 ## open (5)
 
 - **Q-001** Stale active journal threshold (currently 3 days) — 2026-05-27 — tags: journal, atlas-compact
-- **Q-002** Topic auto-promotion heuristic for atlas-compact — 2026-05-27 — tags: atlas-compact, topics
 - **Q-003** Multi-machine sync strategy for divergent atlas state — 2026-05-27 — tags: sync, journal
 - **Q-004** Research task verification when hypothesis itself is exploratory — 2026-05-27 — tags: verification, research, grill-me
 - **Q-005** Cross-skill code duplication threshold and consolidation strategy — 2026-05-27 — tags: skills, refactor
+- **Q-006** Does verification-result carry signal? (all closes are 'passed') — 2026-06-12 — tags: journal, verification, dogfood
+
+## merged-into-D (1)
+
+- **Q-002** Topic auto-promotion heuristic for atlas-compact — 2026-05-27 — tags: atlas-compact, topics; answered-by: D-022

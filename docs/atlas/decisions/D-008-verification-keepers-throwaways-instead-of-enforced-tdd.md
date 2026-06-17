@@ -3,6 +3,7 @@ id: D-008
 title: Verification + Keepers/Throwaways instead of enforced TDD
 date: 2026-05-27
 status: active
+triage: promoted
 tags: [verification, workflow]
 related: []
 source: bootstrap

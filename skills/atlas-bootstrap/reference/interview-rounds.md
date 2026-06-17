@@ -29,7 +29,7 @@ Goal: produce a complete PROJECT.md with all sections filled.
 
 ### Drafting
 
-After the questions, write the complete PROJECT.md to project root. Show it to user. Accept or iterate once.
+After the questions, write the complete PROJECT.md to project root. Show it to user. Accept or iterate once. Leave **Working rules** empty in this round — Round B fills it as confirmed decisions get triaged.
 
 ### Round A hard rules
 
@@ -58,6 +58,15 @@ Phrasing template for each candidate:
 > "Looking at <evidence>, I see you chose <X> over <Y>. My guess: this was deliberate, because of <Z>. Record this as D-NNN?"
 
 If yes: draft frontmatter + body with concrete `source` field. User reviews and edits.
+
+### Triage each confirmed decision
+
+For every confirmed D, also propose its `triage` value (test: *does violating it produce visible resistance?*):
+
+- Embodied in code / repo structure (visible resistance) → `archival`
+- A standing behavioral rule with no resistance when violated → `promoted`: draft a one-line entry for PROJECT.md's **Working rules** section ending with the `(D-NNN)` pointer
+
+Write the confirmed Working rules lines into PROJECT.md during this round (the section exists from Round A's template). `validate.py` in Phase 3 enforces the promoted⟺pointer pairing, so unpaired states fail loudly.
 
 ### Round B hard rules
 

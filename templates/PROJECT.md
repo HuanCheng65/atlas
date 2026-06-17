@@ -7,10 +7,10 @@ hard constraints, and shared vocabulary. Read by agents at session start
 
 Authoring tip — orient extracts this file as a session-start summary, so write
 for extraction: lead each prose section with a self-contained first sentence
-(orient shows it as the headline), and keep Non-goals / Hard constraints as
-short bullet lists (orient inlines those in full — they're the guardrails).
-Keep "Current stage" to a single lifecycle word; the live milestone lives in
-ROADMAP.md, so don't restate it here or it goes stale.
+(orient shows it as the headline), and keep Non-goals / Hard constraints /
+Working rules as short bullet lists (orient inlines those in full — they're
+the guardrails). Keep "Current stage" to a single lifecycle word; the live
+milestone lives in ROADMAP.md, so don't restate it here or it goes stale.
 -->
 
 ## Background
@@ -30,6 +30,14 @@ ROADMAP.md, so don't restate it here or it goes stale.
 
 <!-- 不可妥协的技术、时间、资源约束。
      例：必须在 H100 上跑通；必须在 SoCC 2026 deadline 前完成 main results。 -->
+
+## Working rules
+
+<!-- The constitution: standing rules currently in force, promoted from
+     decisions. One line per rule, ending with its (D-NNN) pointer back to
+     the full record — validate.py enforces the pairing both ways.
+     Starts empty; rules arrive as decisions get triaged as `promoted`.
+     Keep it curated and bounded — line count here is a budget, not a log. -->
 
 ## Glossary
 

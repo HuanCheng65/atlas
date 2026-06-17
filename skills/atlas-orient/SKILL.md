@@ -1,6 +1,6 @@
 ---
 name: atlas-orient
-description: Load the current atlas state into your context. Invoked by `using-atlas` at session start to load initial context. Also use WHEN the user says "what were we working on", "where did we leave off", "what's the state of X"; when context seems stale mid-session; or when switching to a different project (different cwd). Reads PROJECT.md, roadmap, active D / Q / E indexes, active and recent journal entries; produces a navigator summary. Lightweight and idempotent — safe to re-invoke any time.
+description: Load the current atlas state into your context. Invoked by `using-atlas` at session start to load initial context. Also use WHEN the user says "what were we working on", "where did we leave off", "what's the state of X"; when context seems stale mid-session (including after a session resume); or when switching to a different project (different cwd). Reads PROJECT.md (including the Working rules constitution), roadmap, and entity/journal frontmatter directly; produces a navigator summary. Lightweight and idempotent — safe to re-invoke any time.
 ---
 
 # Atlas Orient
@@ -28,19 +28,21 @@ Trigger frequency: typically once per session via using-atlas, plus on-demand re
 Run the orient script from project root:
 
 ```bash
-python ~/.claude/skills/atlas-orient/scripts/orient.py
+python3 ~/.claude/skills/atlas-orient/scripts/orient.py
 ```
 
 The output is a short markdown summary. **Read it completely**. It is intentionally compact — each section is either a few bullets or points you at a source file with full detail.
 
+The script reads entity and journal **frontmatter directly** — never `_index.md`, which is a human-only browse view. Time-dependent filtering (the recency window) happens at render time.
+
 What the summary contains:
 
-- Project name, stage, background headline, glossary size
+- Project name, stage, background headline, glossary size; the guardrail sections — Non-goals, Hard constraints, **Working rules** (the constitution: standing rules with their decision pointers) — inlined in full
 - Current milestone (one paragraph) — roadmap intentionally holds only this section
-- Active D-NNN list (titles only — usually < 20, can fit in full)
+- Decisions pending triage (usually a handful — promoted decisions already appear as Working rules; archival ones load on demand from docs/atlas/decisions/)
 - Open Q-NNN list
 - Active journal entries (work currently in flight; may be > 1 if parallel work)
-- Recent closed journal entries (last 14 days, table)
+- Recent closed journal entries (last 14 days, computed at render time)
 
 ## After orient: what to do
 

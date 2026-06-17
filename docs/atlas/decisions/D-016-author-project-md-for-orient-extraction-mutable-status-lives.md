@@ -3,6 +3,7 @@ id: D-016
 title: Author PROJECT.md for orient extraction; mutable status lives in ROADMAP
 date: 2026-05-28
 status: active
+triage: promoted
 tags: [project-md, orient, data-model, authoring, progressive-disclosure]
 related: [D-003, D-010, D-012]
 source-journal: 2026-05-28-orient-coverage-and-project-authoring.md

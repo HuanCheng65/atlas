@@ -8,6 +8,10 @@ id: {{ID}}
 title: {{TITLE}}
 date: {{DATE}}
 status: planned
+# triage: pending → shows in orient's menu until reviewed; promoted → one-line rule
+# in PROJECT.md Working rules with a (D-NNN) pointer (validate enforces the pair);
+# archival → reviewed, stays an event record consulted on demand.
+triage: pending
 tags: []
 related: []
 source-journal: null

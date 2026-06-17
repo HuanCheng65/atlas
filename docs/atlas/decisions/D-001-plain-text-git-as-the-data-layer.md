@@ -3,6 +3,7 @@ id: D-001
 title: Plain text + git as the data layer
 date: 2026-05-27
 status: active
+triage: promoted
 tags: [data-model, infrastructure]
 related: [D-004]
 source: bootstrap

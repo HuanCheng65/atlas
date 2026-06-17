@@ -49,12 +49,12 @@ def main():
     ts = _lib.parse_at(args.at) if args.at else _lib.now_str()
     close_body = _lib.read_stdin_body(required=True, label="Close section body")
 
-    existing_close = CLOSE_HEADER_RE.search(body)
-    new_close_block = f"\n## Close\n\n{close_body}\n"
-    if existing_close:
-        new_body = body[: existing_close.start()].rstrip() + new_close_block
-    else:
-        new_body = body.rstrip() + "\n" + new_close_block
+    if CLOSE_HEADER_RE.search(body):
+        _lib.die(
+            f"entry {args.slug!r} already has a `## Close` section despite status="
+            f"{meta.get('status')!r} — malformed entry, refuse to write"
+        )
+    new_body = body.rstrip() + f"\n\n## Close\n\n{close_body}\n"
     if not new_body.endswith("\n"):
         new_body += "\n"
 

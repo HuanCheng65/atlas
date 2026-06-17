@@ -3,6 +3,7 @@ id: D-006
 title: Multiple active journal entries allowed (no single-active constraint)
 date: 2026-05-27
 status: active
+triage: archival
 tags: [journal, concurrency]
 related: [D-005]
 source: bootstrap

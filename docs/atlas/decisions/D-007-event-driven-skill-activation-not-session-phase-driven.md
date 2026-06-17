@@ -3,6 +3,7 @@ id: D-007
 title: Event-driven skill activation, not session-phase-driven
 date: 2026-05-27
 status: active
+triage: promoted
 tags: [skills, activation]
 related: [D-005, D-009]
 source: bootstrap

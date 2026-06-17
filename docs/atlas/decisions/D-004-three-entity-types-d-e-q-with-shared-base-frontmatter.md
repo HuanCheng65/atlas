@@ -3,6 +3,7 @@ id: D-004
 title: Three entity types D/E/Q with shared base frontmatter
 date: 2026-05-27
 status: active
+triage: archival
 tags: [data-model]
 related: [D-001]
 source: bootstrap

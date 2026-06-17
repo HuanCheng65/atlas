@@ -21,6 +21,7 @@ All three entity types share a base frontmatter, with type-specific extensions. 
 | supersedes | list[string] | D-ids this supersedes |
 | superseded-by | list[string] | D-ids that supersede this |
 | affects | list[string] | Paths or modules, e.g. `[src/kernel/sla_*]` |
+| triage | string | `pending \| promoted \| archival` — review state. `pending` shows in orient's menu; `promoted` requires a `(D-NNN)` pointer line in PROJECT.md (validate enforces the pair both ways); `archival` is a reviewed event record |
 
 Status: `planned | active | superseded | rejected`
 
@@ -47,7 +48,7 @@ Status: `open | answered | wontfix | merged-into-D`
 
 ## File naming
 
-`<TYPE>-NNN-<slug>.md`. Slug is lowercase alphanumeric with hyphens, capped at 60 chars.
+`<TYPE>-NNN-<slug>.md`. Slug is lowercase alphanumeric with hyphens, capped at ~70 chars (`new.py` truncates at a word boundary and warns).
 
 Example: `D-012-use-cuda-graphs-for-dispatch.md`
 

@@ -3,6 +3,7 @@ id: D-010
 title: Roadmap holds only Current milestone — no Up next, Backlog, or Recently done
 date: 2026-05-27
 status: active
+triage: archival
 tags: [roadmap, data-model, concurrency]
 related: [D-006, Q-002, Q-003]
 source-journal: null

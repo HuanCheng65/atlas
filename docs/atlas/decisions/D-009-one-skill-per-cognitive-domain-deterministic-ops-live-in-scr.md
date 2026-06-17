@@ -3,6 +3,7 @@ id: D-009
 title: One skill per cognitive domain; deterministic ops live in scripts
 date: 2026-05-27
 status: active
+triage: promoted
 tags: [skills, architecture]
 related: [D-007]
 source: bootstrap

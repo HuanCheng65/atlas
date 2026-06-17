@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Regenerate docs/atlas/journal/_index.md from all journal entries.
 
+The index is a human-only browse view (the agent reads frontmatter directly
+via orient). Its content depends solely on entry frontmatter — never on the
+run date — so identical data always yields a byte-identical file; recency
+windows are computed by orient at render time instead.
+
 Usage:
     reindex.py
 
@@ -9,7 +14,6 @@ Must be run from project root (the directory containing docs/atlas/).
 import re
 import sys
 from collections import defaultdict
-from datetime import datetime, timedelta
 from pathlib import Path
 
 import yaml
@@ -63,33 +67,6 @@ def render_active(lines, active):
     lines.append("")
 
 
-def render_recent_closed(lines, closed):
-    today = datetime.now().date()
-    cutoff = today - timedelta(days=14)
-    recent = []
-    for meta, p in closed:
-        try:
-            d = datetime.strptime(str(meta.get("date", "")), "%Y-%m-%d").date()
-            if d >= cutoff:
-                recent.append((meta, p))
-        except (ValueError, TypeError):
-            pass
-
-    lines.append(f"## Recent closed (last 14 days, {len(recent)})")
-    lines.append("")
-    if not recent:
-        lines.append("*Nothing closed recently.*")
-        lines.append("")
-        return
-    lines.append("| Date | Entry | Tags | Result |")
-    lines.append("|------|-------|------|--------|")
-    for meta, p in recent:
-        tags = ", ".join(meta.get("tags") or [])
-        result = meta.get("verification-result") or "?"
-        lines.append(f"| {meta.get('date', '?')} | [{p.stem}]({p.name}) | {tags} | {result} |")
-    lines.append("")
-
-
 def render_by_tag(lines, closed):
     by_tag = defaultdict(list)
     for meta, p in closed:
@@ -137,7 +114,6 @@ def main():
         "",
     ]
     render_active(lines, active)
-    render_recent_closed(lines, closed)
     render_by_tag(lines, closed)
     render_by_month(lines, closed)
 

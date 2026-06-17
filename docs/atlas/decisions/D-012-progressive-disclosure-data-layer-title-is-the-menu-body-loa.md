@@ -1,8 +1,9 @@
 ---
 id: D-012
-title: "Progressive-disclosure data layer: title is the menu, body loads on demand"
+title: 'Progressive-disclosure data layer: title is the menu, body loads on demand'
 date: 2026-05-28
 status: active
+triage: promoted
 tags: [data-model, skills, orient, design-principle]
 related: [D-001, D-005, D-009]
 source-journal: 2026-05-28-formalize-progressive-disclosure-conventions.md

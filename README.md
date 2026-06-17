@@ -89,7 +89,7 @@ Symlinked skills update automatically — no reinstall needed.
 | atlas-entity | ready — D / E / Q lifecycle, validation, reindex |
 | grill-me | ready — interview-driven planning with verification criteria |
 | atlas-bootstrap | ready — one-time onboarding for existing projects |
-| atlas-compact | planned — periodic distillation / topic extraction from journal |
+| atlas-compact | ready — periodic maintenance: clears backlog (stale entries, untriaged decisions, aging questions), consolidates records (merges, topic distillation), one revertable commit per run |
 
 ## License
 

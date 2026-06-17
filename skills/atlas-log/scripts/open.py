@@ -19,6 +19,7 @@ stderr + non-zero exit on any error
 Refuses to overwrite an existing file.
 """
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -28,6 +29,19 @@ import _lib  # noqa: E402
 
 def slug_to_title(slug):
     return slug.replace("-", " ").capitalize()
+
+
+def derive_project():
+    """Project name from PROJECT.md's H1 (strips a leading 'Project:' prefix).
+    Returns None when PROJECT.md or its H1 is missing."""
+    p = Path("PROJECT.md")
+    if not p.exists():
+        return None
+    m = re.search(r"^#\s+(.+)$", p.read_text(encoding="utf-8"), re.MULTILINE)
+    if not m:
+        return None
+    name = re.sub(r"^Project:\s*", "", m.group(1).strip()).strip()
+    return name or None
 
 
 def parse_csv(s):
@@ -41,7 +55,11 @@ def main():
         description="Open a new journal entry. Context body via stdin."
     )
     ap.add_argument("--slug", required=True, help="kebab-case slug (no date prefix)")
-    ap.add_argument("--project", required=True, help="project name (matches PROJECT.md)")
+    ap.add_argument(
+        "--project",
+        default=None,
+        help="project name (default: derived from PROJECT.md's H1)",
+    )
     ap.add_argument("--tags", default="", help="comma-separated tags")
     ap.add_argument("--related", default="", help="comma-separated related slugs / entity ids")
     ap.add_argument("--title", default=None, help="entry title (default: derived from slug)")
@@ -49,6 +67,10 @@ def main():
     args = ap.parse_args()
 
     _lib.validate_slug(args.slug)
+
+    project = args.project or derive_project()
+    if not project:
+        _lib.die("could not derive a project name from PROJECT.md's H1 — pass --project")
 
     ts = _lib.parse_at(args.at) if args.at else _lib.now_str()
     date_str = ts.split(" ")[0]
@@ -68,7 +90,7 @@ def main():
     meta = {
         "date": date_str,
         "slug": args.slug,
-        "project": args.project,
+        "project": project,
         "tags": parse_csv(args.tags),
         "status": "active",
         "opened": ts,

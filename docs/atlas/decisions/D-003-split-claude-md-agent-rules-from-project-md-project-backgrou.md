@@ -3,6 +3,7 @@ id: D-003
 title: Split CLAUDE.md (agent rules) from PROJECT.md (project background)
 date: 2026-05-27
 status: active
+triage: archival
 tags: [docs, agent-onboarding]
 related: []
 source: bootstrap

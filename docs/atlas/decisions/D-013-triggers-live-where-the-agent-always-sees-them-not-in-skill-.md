@@ -1,8 +1,9 @@
 ---
 id: D-013
-title: "Triggers live where the agent always sees them, not in skill bodies"
+title: Triggers live where the agent always sees them, not in skill bodies
 date: 2026-05-28
 status: active
+triage: promoted
 tags: [skills, triggers, agent-behavior, architecture]
 related: [D-007, D-009, D-012]
 source-journal: 2026-05-28-fix-trigger-location-and-journal-lifecycle.md

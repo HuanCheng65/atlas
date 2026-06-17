@@ -40,10 +40,27 @@ AI-assisted workflow into reusable conventions and tooling.
 
 ## Hard constraints
 
-- Plain text + git only; no databases, no external services
+- Plain text + git only; no databases, no external services (D-001)
 - Python + pyyaml + bash as the only runtime dependencies
-- Skills are user-level (cross-project); data is project-level (lives with the repo)
+- Skills are user-level (cross-project); data is project-level (lives with the repo) (D-002)
 - Maintenance overhead must stay low enough for one person to sustain indefinitely
+
+## Working rules
+
+<!-- The constitution: standing rules currently in force, promoted from
+     decisions. One line per rule, ending with its (D-NNN) pointer back to
+     the full record. validate.py enforces the pairing both ways. -->
+
+- Skills activate on events, never on session phases (D-007)
+- Every plan declares Verification; artifacts are classified Keepers vs Throwaways (D-008)
+- One skill per cognitive domain; deterministic operations live in scripts (D-009)
+- Title is the menu: every entity/journal title carries the decision signal; bodies load on demand (D-012)
+- Triggers live in persistently-loaded surfaces, never only in skill bodies (D-013)
+- Distributed skill bodies never cite this project's entity IDs; reasoning stated inline (D-015)
+- PROJECT.md is authored for extraction: first sentences self-contained; mutable status lives in ROADMAP (D-016)
+- New decisions get triaged: standing rules promote here, events stay archival — test: does violating it produce visible resistance? (D-017)
+- Agent rules become mechanisms (script defaults/refusals, hooks, validators) wherever possible; prose is for judgment calls (D-020)
+- Atlas changes ride the work unit's own commits; atlas-only commits only when atlas content is itself the work (D-021)
 
 ## Glossary
 
@@ -54,9 +71,11 @@ AI-assisted workflow into reusable conventions and tooling.
 - **Q-NNN (Question)** — open question awaiting resolution
 - **Journal** — append-only time-ordered event log at `docs/atlas/journal/`
 - **Topic** — free-form derived knowledge note at `docs/atlas/topics/`; emerges from journal patterns
-- **Compact** — periodic operation that proposes entity promotions and topic distillations
+- **Compact** — maintenance pass that clears backlog (stale actives, pending triage, aging questions) and consolidates the store (merges, closes, topics, wording); runs without per-item confirmation, lands as one revertable commit
 - **Keeper / Throwaway** — classification of verification artifacts as long-term regression vs development-time scaffold
 - **Supersedes chain** — audit trail of decision evolution (D-A → D-B → D-C)
+- **Working rules** — the constitution section of PROJECT.md: standing rules currently in force, one line each, pointing back to the decision that established it
+- **Triage** — a decision's review state: pending (awaiting review, shown in orient's menu), promoted (one-line rule in Working rules), or archival (event record consulted on demand)
 
 ## Collaborators & stakeholders
 

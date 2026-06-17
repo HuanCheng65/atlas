@@ -66,10 +66,10 @@ Concrete unresolved question that won't be answered in this session. Don't creat
 All scripts assume CWD is the project root (where `docs/atlas/` lives).
 
 ### `new.py --type D|E|Q "<title>"`
-Creates the next entity. Reads `docs/atlas/_templates/<type>.md`, assigns next available ID, fills placeholders, prints the new file path. Open it and fill in the body sections.
+Creates the next entity. Reads `docs/atlas/_templates/<type>.md`, assigns next available ID, fills placeholders, reindexes its type, prints the new file path. Open it and fill in the body sections.
 
 ```bash
-python ~/.claude/skills/atlas-entity/scripts/new.py --type D "use CUDA graphs for dispatch"
+python3 ~/.claude/skills/atlas-entity/scripts/new.py --type D "use CUDA graphs for dispatch"
 # -> docs/atlas/decisions/D-012-use-cuda-graphs-for-dispatch.md
 ```
 
@@ -80,7 +80,7 @@ Bidirectional supersedes between two decisions. Sets `old.status=superseded`, ap
 Closes a question. `<ref>` is an entity id (e.g. D-012) or journal filename. Status becomes `answered`, `merged-into-D`, or `wontfix`.
 
 ### `reindex.py [--type D|E|Q]`
-Rebuilds `_index.md` from entity frontmatter. Safe to run unconditionally. Run after any new/supersede/close.
+Rebuilds `_index.md` from entity frontmatter. Safe to run unconditionally. Auto-run by `new.py`; run manually after supersede/close_question or hand-edits to frontmatter (e.g. status changes).
 
 ### `validate.py`
 Checks orphan refs, bidirectional consistency, status legality, required fields. Run before committing entity changes. Exits non-zero on errors.
@@ -88,13 +88,14 @@ Checks orphan refs, bidirectional consistency, status legality, required fields.
 ## Standard workflows
 
 ### Long-term decision made
-1. Confirm with the user it meets the criteria above
+1. Confirm with the user it meets the criteria above — propose at a natural seam (work wrap-up, before close, a user pause), not mid-flow; the exception is a conflict with a Working rule / active decision, which surfaces immediately
 2. `new.py --type D "<title>"`
 3. Open the returned path; fill Context / Decision / Rationale / Consequences / Alternatives
 4. Set `status: active` (template defaults to `planned`, which means "documented but not yet adopted" — most newly-recorded decisions are immediately in effect)
-5. If supersedes existing: `supersede.py <old-id> <new-id>`
-6. If answers an open question: `close_question.py <q-id> --by <new-id>`
-7. `reindex.py` then `validate.py`
+5. Leave `triage: pending` (template default) — it keeps the decision in orient's menu until reviewed; promotion into PROJECT.md's Working rules happens at a review pass (atlas-compact or the user), not at creation
+6. If supersedes existing: `supersede.py <old-id> <new-id>` — if the old decision was promoted, update or remove its Working rules line in PROJECT.md too; `validate.py` fails until the pair is consistent
+7. If answers an open question: `close_question.py <q-id> --by <new-id>`
+8. `reindex.py` then `validate.py`
 
 **Legal status values** (validated by `validate.py`):
 - **D**: `planned | active | superseded | rejected` — *not* `accepted`/`adopted`/`approved`; atlas uses `active`
@@ -118,7 +119,7 @@ Full state machines: `reference/lifecycle.md`.
 Read directly: glob `docs/atlas/decisions/D-007-*.md`.
 
 ## Out of scope for this skill
-- Writing journal entries → `atlas-session-end` skill
+- Writing journal entries → `atlas-log` skill
 - Proposing entity promotions from journal → `atlas-compact` skill
-- Loading session context → `atlas-session-start` skill
+- Loading session context → `atlas-orient` skill
 - Brainstorming requirements → `grill-me` skill

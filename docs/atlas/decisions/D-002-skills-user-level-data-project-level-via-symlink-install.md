@@ -3,6 +3,7 @@ id: D-002
 title: Skills user-level, data project-level via symlink install
 date: 2026-05-27
 status: active
+triage: promoted
 tags: [packaging, infrastructure]
 related: []
 source: bootstrap

@@ -2,8 +2,9 @@
 
 All journal mutations go through these helpers so timestamps are
 generated deterministically (datetime.now) and never fabricated by the
-agent. Frontmatter parsing mirrors atlas-entity/_lib.py — kept separate
-to avoid cross-skill coupling, but interfaces match.
+agent. YAML round-trip behavior mirrors atlas-entity/scripts/_lib.py —
+kept as a separate copy for skill self-containment, so when changing
+loader/dumper behavior in either file, mirror it in the other.
 """
 import os
 import re
@@ -117,13 +118,17 @@ def validate_slug(slug):
 def find_entry(slug):
     """Locate the journal file for a bare slug. Returns Path.
 
+    Matches exactly `YYYY-MM-DD-<slug>.md` — a plain `*-{slug}.md` glob
+    would also hit entries whose slug merely ends in `-{slug}` and could
+    silently write to the wrong file.
+
     Exits with ERROR if zero or multiple matches.
     """
     validate_slug(slug)
     if not JOURNAL.exists():
         die(f"{JOURNAL} not found — run from project root of an atlas-enabled project")
-    matches = sorted(JOURNAL.glob(f"*-{slug}.md"))
-    matches = [p for p in matches if not p.name.startswith("_")]
+    name_re = re.compile(rf"^\d{{4}}-\d{{2}}-\d{{2}}-{re.escape(slug)}\.md$")
+    matches = sorted(p for p in JOURNAL.glob(f"*-{slug}.md") if name_re.match(p.name))
     if not matches:
         die(f"no journal entry with slug {slug!r}")
     if len(matches) > 1:

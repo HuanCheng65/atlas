@@ -20,8 +20,8 @@ real use.
 
 Exit criteria:
 
-- `atlas-compact` shipped with a first-pass topic-extraction heuristic
-  (resolves Q-002).
+- `atlas-compact` shipped (Q-002 resolved: the scan reports tag clusters
+  as data; whether a cluster becomes a topic is judgment, not a heuristic).
 - Echo uses atlas on the SLA project for one full week and reports
   design pressure points.
 - Any drift, unclear conventions, or recurring agent failure modes

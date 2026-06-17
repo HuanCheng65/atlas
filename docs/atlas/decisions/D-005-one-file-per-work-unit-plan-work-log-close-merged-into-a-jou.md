@@ -1,8 +1,9 @@
 ---
 id: D-005
-title: "One file per work unit: plan, work log, close merged into a journal entry"
+title: 'One file per work unit: plan, work log, close merged into a journal entry'
 date: 2026-05-27
 status: active
+triage: archival
 tags: [journal, data-model]
 related: [D-006, D-007]
 source: bootstrap

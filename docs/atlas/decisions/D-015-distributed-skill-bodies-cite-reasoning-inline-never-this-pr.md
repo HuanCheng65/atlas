@@ -3,6 +3,7 @@ id: D-015
 title: Distributed skill bodies cite reasoning inline, never this project's entity IDs
 date: 2026-05-28
 status: active
+triage: promoted
 tags: [skills, distribution, hygiene]
 related: []
 source-journal: 2026-05-28-strip-project-entity-refs-from-distributed-skills.md

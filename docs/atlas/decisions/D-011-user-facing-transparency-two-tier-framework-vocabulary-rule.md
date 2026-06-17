@@ -1,8 +1,9 @@
 ---
 id: D-011
-title: "User-facing transparency: two-tier framework vocabulary rule"
+title: 'User-facing transparency: two-tier framework vocabulary rule'
 date: 2026-05-28
 status: active
+triage: archival
 tags: [skills, ux, agent-behavior, transparency]
 related: [D-001, D-007]
 source-journal: 2026-05-28-atlas-user-facing-transparency.md
