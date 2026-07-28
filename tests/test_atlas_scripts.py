@@ -246,6 +246,48 @@ def test_validate_fails_illegal_triage(constitution_project):
     assert "illegal triage" in proc.stdout
 
 
+# ---------- validate.py experiment summary caps ----------
+
+@pytest.fixture
+def experiment_project(constitution_project):
+    """A validate-clean project plus one fresh experiment."""
+    project = constitution_project
+    proc = ok(NEW, "--type", "E", "Does X beat Y on Z?", cwd=project)
+    return project, project / proc.stdout.strip().splitlines()[-1]
+
+
+def test_validate_passes_fresh_experiment(experiment_project):
+    project, _ = experiment_project
+    ok(VALIDATE, cwd=project)
+
+
+def test_validate_fails_overlong_summary_field(experiment_project):
+    project, path = experiment_project
+    set_fields(path, conclusion='"' + "长" * 301 + '"')
+    proc = run(VALIDATE, cwd=project)
+    assert proc.returncode != 0
+    assert "E-001.conclusion" in proc.stdout
+    assert "exceeds 300" in proc.stdout
+
+
+def test_validate_fails_overlong_nested_result_value(experiment_project):
+    project, path = experiment_project
+    set_fields(path, result='{key_finding: "' + "x" * 301 + '"}')
+    proc = run(VALIDATE, cwd=project)
+    assert proc.returncode != 0
+    assert "E-001.result" in proc.stdout
+
+
+def test_validate_fails_body_pointing_at_frontmatter(experiment_project):
+    project, path = experiment_project
+    original = path.read_text(encoding="utf-8")
+    for pointer in ("见 frontmatter 的 conclusion。", "See frontmatter."):
+        path.write_text(original + f"\n## Conclusion\n\n{pointer}\n", encoding="utf-8")
+        proc = run(VALIDATE, cwd=project)
+        assert proc.returncode != 0, f"pointer not caught: {pointer!r}"
+        assert "canonical prose" in proc.stdout
+
+
 # ---------- orient.py ----------
 
 def test_orient_menu_and_recency(constitution_project):

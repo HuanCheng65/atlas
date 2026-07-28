@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Validate atlas entities: orphan refs, bidirectional consistency, frontmatter,
-and the PROJECT.md constitution pairing (triage: promoted ⟺ a `(D-NNN)` pointer
-in PROJECT.md; every pointer resolves to an existing, active decision).
+the PROJECT.md constitution pairing (triage: promoted ⟺ a `(D-NNN)` pointer
+in PROJECT.md; every pointer resolves to an existing, active decision), and
+the frontmatter/body split (E content fields are one-line machine summaries,
+capped in length; bodies own the full prose and may not point at frontmatter).
 
 Usage:
     validate.py
@@ -36,22 +38,44 @@ REQUIRED_BY_TYPE = {
     "Q": ["severity", "answered-by"],
 }
 
+# E content fields are machine summaries scanned without loading the body;
+# the body sections own the full prose. The cap keeps them one-liners.
+E_SUMMARY_FIELDS = ["hypothesis", "config", "result", "conclusion"]
+MAX_SUMMARY_LEN = 300
+
+# Bodies are the canonical prose — a section that says "见 frontmatter" /
+# "see frontmatter" instead of its content is a hole in the record.
+FRONTMATTER_POINTER_RE = re.compile(r"见\s*frontmatter|see\s+frontmatter", re.IGNORECASE)
+
+
+def string_leaves(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from string_leaves(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from string_leaves(v)
+
 
 def load_all():
     entities = {}
+    bodies = {}
     for t in ALL_TYPES:
         d = _lib.ATLAS / _lib.TYPE_DIR[t]
         if not d.exists():
             continue
         for p in d.glob(f"{t}-*.md"):
-            meta, _ = _lib.parse_md(p.read_text(encoding="utf-8"))
+            meta, body = _lib.parse_md(p.read_text(encoding="utf-8"))
             eid = meta.get("id") or p.stem.rsplit("-", 1)[0]
             entities[eid] = (p, meta)
-    return entities
+            bodies[eid] = body
+    return entities, bodies
 
 
 def main():
-    entities = load_all()
+    entities, bodies = load_all()
     errors = []
 
     def err(msg):
@@ -70,6 +94,20 @@ def main():
             triage = meta.get("triage")
             if triage is not None and triage not in VALID_TRIAGE:
                 err(f"{eid}: illegal triage `{triage}` (must be one of {sorted(VALID_TRIAGE)})")
+        if t == "E":
+            for field in E_SUMMARY_FIELDS:
+                for s in string_leaves(meta.get(field)):
+                    if len(s) > MAX_SUMMARY_LEN:
+                        err(f"{eid}.{field}: {len(s)}-char value exceeds {MAX_SUMMARY_LEN} — "
+                            f"frontmatter fields are one-line machine summaries; "
+                            f"full prose belongs in the body")
+                        break
+
+    # bodies own the prose — no "见 frontmatter" placeholders
+    for eid, body in bodies.items():
+        if FRONTMATTER_POINTER_RE.search(body):
+            err(f"{eid}: body points at frontmatter instead of stating its content — "
+                f"the body is the canonical prose; write it out")
 
     # reference checks
     def check_refs(eid, meta, key):

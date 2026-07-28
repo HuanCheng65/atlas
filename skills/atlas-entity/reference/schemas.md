@@ -30,12 +30,18 @@ Status: `planned | active | superseded | rejected`
 | Field | Type | Notes |
 |---|---|---|
 | hypothesis | string or null | One-sentence claim |
-| config | object | Free-form dict (dataset, hyperparams, ...) |
-| result | object | Key metrics. `{}` until completed |
+| config | object | Key params only, short scalar values |
+| result | object | Key numbers only. `{}` until completed |
 | artifacts | list[string] | Paths to traces, plots, logs |
-| conclusion | string or null | One-sentence verdict |
+| conclusion | string or null | One- or two-sentence verdict |
 
 Status: `planned | running | completed | abandoned`
+
+The four content fields (`hypothesis`, `config`, `result`, `conclusion`) are
+machine summaries for scanning without loading bodies — validate rejects any
+string value in them over 300 chars. The body sections (Hypothesis / Setup /
+Result / Conclusion) own the full prose; a body that says "见 frontmatter" /
+"see frontmatter" instead of its content is a validate error.
 
 ## Question (Q-NNN) specific
 
