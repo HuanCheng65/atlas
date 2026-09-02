@@ -111,6 +111,20 @@ def test_old_identifiers_are_pointed_at_their_map_only_when_one_exists(project):
     assert "do not rewrite them" in out
 
 
+def test_it_records_a_baseline_for_the_write_guard(project):
+    # Without a baseline the guard cannot tell what this session changed from
+    # what it merely found, and would report the latter as the former.
+    guard = REPO / "hooks" / "store_guard.py"
+    make(project, "decision", "A settled choice", "body\n")
+    run(cwd=project)
+
+    make(project, "decision", "The new way",
+         "Replaces it: (supersedes:: [[009-missing]]).\n", tags="fixture")
+    proc = subprocess.run([sys.executable, str(guard)], cwd=project,
+                          capture_output=True, text=True)
+    assert proc.returncode == 2, "the first call after the break must report it"
+
+
 def test_superseded_decisions_drop_off(project):
     make(project, "decision", "The old way", "body\n")
     make(project, "decision", "The new way",

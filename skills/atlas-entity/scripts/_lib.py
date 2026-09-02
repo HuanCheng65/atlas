@@ -5,6 +5,7 @@ wikilinks resolve by filename, so `id` and `slug` in frontmatter must agree
 with it. Frontmatter carries identity and machine summaries only — every
 relation between records lives in the body as a wikilink.
 """
+import hashlib
 import os
 import re
 import tempfile
@@ -136,6 +137,32 @@ def require_version():
     complaint = version_complaint()
     if complaint:
         raise SystemExit(f"ERROR: {complaint}")
+
+
+def fingerprint():
+    """Identity of the store's contents, cheap enough to compute per tool call.
+
+    `_index.md` is excluded because it is derived: regenerating it must not
+    look like a change to what it was derived from.
+    """
+    parts = []
+    for path in sorted(RECORDS.glob("*.md")):
+        if path.name == "_index.md":
+            continue
+        stat = path.stat()
+        parts.append(f"{path.name}\t{stat.st_mtime_ns}\t{stat.st_size}")
+    return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
+
+
+def fingerprint_cache():
+    """Where the post-write guard keeps the last state it accepted.
+
+    Keyed by project and held outside the repository. Session start seeds it
+    so that a difference means this session changed something; losing the file
+    costs one baseline, never a wrong answer.
+    """
+    key = hashlib.sha256(str(Path.cwd()).encode("utf-8")).hexdigest()[:16]
+    return Path(tempfile.gettempdir()) / f"atlas-store-guard-{key}"
 
 
 def display_width(text):

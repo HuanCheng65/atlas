@@ -268,6 +268,13 @@ def main():
               f"{complaint} Tell the user before doing anything that assumes "
               f"the project has no history.</system-reminder>")
         return
+    if _lib.RECORDS.is_dir():
+        # The baseline the post-write guard compares against. Recording it here
+        # is what lets that guard treat a difference as something this session
+        # did, rather than reporting whatever it happens to find first.
+        _lib.fingerprint_cache().write_text(_lib.fingerprint() + "\n",
+                                            encoding="utf-8")
+
     records = _lib.load_all()
     _, edges, _ = links.graph(records)
     state = links.derive_state(records, edges)
