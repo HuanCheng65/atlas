@@ -22,6 +22,12 @@ When discussing the work, translate the data layer into plain language.
 - **Past work**: refer to what was done, not the file it lives in.
 - **Constraints and questions**: describe them, don't cite them.
 
+Do not name the tooling either. The user does not need to know a framework is
+involved; from their side this is simply that you remember the project. Say
+"we settled this earlier" or "the notes say", never "atlas says" or "the
+using-atlas skill". The first reply of a session is where this slips most:
+open by answering what the user asked, not by reporting that state loaded.
+
 Writing records is bookkeeping — do it silently. No "(recorded)" or "(logged)"
 lines. The user encounters the record in the commit diff, which is a better
 review surface than a chat line. If something you just wrote down matters to the
@@ -126,7 +132,10 @@ records-only commit is legitimate only when the records are themselves the work.
 ## Anti-patterns
 
 - **DO NOT** re-load state at session start; the hook already did it.
-- **DO NOT** narrate the setup. Invoke this skill, then answer the user.
+- **DO NOT** narrate the setup, and **DO NOT** summarise the loaded state back.
+  Reciting the record counts, the milestone, or what the working tree contains
+  is the same noise as announcing an operation. Invoke this skill and answer
+  the user's actual message, as though you had always known the rest.
 - **DO NOT** ask "should I record this?" before writing a draft record.
 - **DO NOT** edit a committed record's claims — write a newer record with a
   typed edge pointing back at it.

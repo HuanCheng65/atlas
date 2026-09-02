@@ -27,9 +27,13 @@ import _lib  # noqa: E402
 import links  # noqa: E402
 
 REMINDER = (
-    "<system-reminder>This project uses atlas. Invoke the `using-atlas` skill "
-    "before responding, so the rules for writing records are in context when "
-    "you need them. The state below is already loaded — do not re-read it."
+    "<system-reminder>The project's memory is loaded below and is already in "
+    "context — do not re-read or re-derive it. Invoke the `using-atlas` skill "
+    "now, before replying, for the rules on writing to it. Do both silently: "
+    "no preamble, no acknowledgement, and do not summarise this state back to "
+    "the user. Answer their message as though you had simply always known what "
+    "is written here, and when you must refer to this material, call it the "
+    "project's memory or notes rather than naming the tooling."
     "</system-reminder>"
 )
 
@@ -121,34 +125,54 @@ def render_roadmap(out):
     out.append("")
 
 
-def touched_records(records):
-    """Records the working tree has changed, plus those in the last commit.
+def constitution_links():
+    """Record numbers PROJECT.md already quotes, in any section.
+
+    A rule inlined above and its decision listed below would be the same
+    claim twice, in a payload where every line is paid for every session.
+    """
+    project_md = read("PROJECT.md") or ""
+    return {int(n) for n in re.findall(r"\[\[(\d{3,})-", project_md)}
+
+
+def _git(*args):
+    try:
+        proc = subprocess.run(args, capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    return proc.stdout.splitlines() if proc.returncode == 0 else []
+
+
+def _resolve(records, names):
+    stems = {Path(n).stem for n in names if n.endswith(".md")}
+    return sorted((r for r in records.values() if r.stem in stems), key=lambda r: r.id)
+
+
+def uncommitted_records(records):
+    """Records the working tree has changed — the work actually in hand.
 
     This is what replaced the journal's list of entries in flight, and it is
     derived rather than declared: an uncommitted record is by definition a
-    draft, which is by definition the work in hand. A date window cannot say
-    that — it reports whatever happened to be written recently, and goes
-    empty the moment work pauses.
+    draft, and a draft is by definition unfinished work.
     """
-    def paths(*args):
-        try:
-            proc = subprocess.run(args, capture_output=True, text=True, timeout=5)
-        except (OSError, subprocess.SubprocessError):
-            return []
-        if proc.returncode != 0:
-            return []
-        return proc.stdout.splitlines()
-
-    names = set()
     # `-uall` because the default collapses a wholly untracked directory into
     # one entry, which is exactly the shape of a store on its first day.
-    for line in paths("git", "status", "--porcelain", "-uall", "--", str(_lib.RECORDS)):
-        names.add(line[3:].strip().split(" -> ")[-1])
-    names.update(paths("git", "log", "-1", "--name-only", "--pretty=format:",
-                       "--", str(_lib.RECORDS)))
+    names = {line[3:].strip().split(" -> ")[-1] for line in
+             _git("git", "status", "--porcelain", "-uall", "--", str(_lib.RECORDS))}
+    return _resolve(records, names)
 
-    stems = {Path(n).stem for n in names if n.endswith(".md")}
-    return sorted((r for r in records.values() if r.stem in stems), key=lambda r: r.id)
+
+def head_records(records):
+    """Records the last commit changed — context, not work in hand.
+
+    `git log -1 -- <path>` would answer a different question, "the last commit
+    that touched this path", and so keeps reporting a migration from weeks ago
+    after any commit elsewhere. `--root` so a repository's first commit is not
+    silently empty.
+    """
+    return _resolve(records, _git("git", "diff-tree", "--no-commit-id",
+                                  "--name-only", "-r", "--root", "HEAD",
+                                  "--", str(_lib.RECORDS)))
 
 
 def render_records(out, records, state):
@@ -166,30 +190,56 @@ def render_records(out, records, state):
     out += [f"- {r.id:03d} {r.title}" for r in open_qs] or ["*(none)*"]
     out.append("")
 
-    touched = touched_records(records)
-    if touched:
-        out.append(f"## Work in progress ({len(touched)})")
-        if len(touched) > MAX_WIP:
-            # A commit touching this many records is a migration or a bulk
-            # rewrite, not a work unit — listing it is noise, not continuity.
-            out.append(f"*The last commit touched {len(touched)} records in bulk; "
-                       f"see `git show --stat`.*")
+    # Titles are the menu, so the menu ships rather than being fetched: an
+    # agent that would have to read the index anyway lands the same bytes in
+    # context, one tool call later. Decisions stay few by construction — a
+    # decision is architecturally significant or it is not a decision — while
+    # experiments grow without bound, so only decisions are named.
+    quoted = set(constitution_links())
+    live = sorted((r for r in records.values()
+                   if r.type == "decision" and r.id not in state
+                   and r.id not in quoted),
+                  key=lambda r: r.id)
+    out.append(f"## Decisions in force ({len(live)})")
+    if quoted:
+        out.append(f"*{len(quoted)} more are quoted above as Working rules.*")
+    out += [f"- {r.id:03d} {r.title}" for r in live] or ["*(none)*"]
+    out.append("")
+
+    drafts = uncommitted_records(records)
+    if drafts:
+        out.append(f"## Uncommitted, still drafts ({len(drafts)})")
+        if len(drafts) > MAX_WIP:
+            # This many at once is a migration or a bulk rewrite, not a work
+            # unit — listing them is noise rather than continuity.
+            out.append("*A bulk change is in the working tree; see `git status`.*")
         else:
-            out.append("*Uncommitted records, and what the last commit touched.*")
-            for r in touched:
+            for r in drafts:
                 standing = state.get(r.id)
                 mark = f", {standing[0]}" if standing else ""
                 out.append(f"- {r.id:03d} {r.title} — {r.type}{mark}")
+        out.append("")
+
+    landed = head_records(records)
+    if landed:
+        # Context, not work in hand: named in one line so a session the day
+        # after a commit knows what landed without mistaking it for a task.
+        titles = "; ".join(f"{r.id:03d} {r.title}" for r in landed[:MAX_WIP])
+        more = f" and {len(landed) - MAX_WIP} more" if len(landed) > MAX_WIP else ""
+        out.append(f"*Last commit touched {len(landed)} record(s): {titles}{more}.*")
         out.append("")
 
     counts = Counter(r.type or "untyped" for r in records.values())
     breakdown = ", ".join(f"{n} {t}{'s' if n != 1 else ''}"
                           for t, n in sorted(counts.items(), key=lambda kv: -kv[1]))
     total = f"{len(records)} record" + ("s" if len(records) != 1 else "")
-    out.append(f"*{total} — {breakdown}. Decisions and experiments are "
-               f"an archive consulted on demand, not listed here: Read "
-               f"`{_lib.RECORDS}/_index.md` for the full menu, or open one directly at "
-               f"`{_lib.RECORDS}/NNN-*.md` when a title above is the one you need.*")
+    retired = len(state)
+    out.append(f"*{total} — {breakdown}"
+               + (f"; {retired} superseded or answered, not listed" if retired else "")
+               + f". Experiments and retired records are an archive consulted on "
+               f"demand: Read `{_lib.RECORDS}/_index.md` for the full menu, or open "
+               f"one directly at `{_lib.RECORDS}/NNN-*.md` when a title above is the "
+               f"one you need.*")
 
 
 def main():
