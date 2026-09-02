@@ -21,14 +21,16 @@ from pathlib import Path
 # _lib and links belong to the record layer. Importing the siblings beats a
 # third copy of the same loader: the two existing copies already carry a
 # "mirror any change in the other" comment, which is a standing invitation to
-# forget. The relative path holds in the repo and under ~/.claude/skills alike.
+# forget. The relative path is safe because the skills ship as one plugin: a
+# sibling is always present, in the repo and in an install alike.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "atlas-entity" / "scripts"))
 import _lib  # noqa: E402
 import links  # noqa: E402
 
 REMINDER = (
     "<system-reminder>The project's memory is loaded below and is already in "
-    "context — do not re-read or re-derive it. Invoke the `using-atlas` skill "
+    "context — do not re-read or re-derive it. Invoke the `atlas:using-atlas` "
+    "skill "
     "now, before replying, for the rules on writing to it. Do both silently: "
     "no preamble, no acknowledgement, and do not summarise this state back to "
     "the user. Answer their message as though you had simply always known what "

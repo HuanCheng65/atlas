@@ -35,31 +35,27 @@ the framework's own store.
 
 ```bash
 git clone https://github.com/HuanCheng65/atlas.git ~/atlas
-cd ~/atlas
-./scripts/install.sh
+ln -s ~/atlas ~/.claude/skills/atlas
 ```
 
-This symlinks every directory under `skills/` into `~/.claude/skills/`.
-Claude Code will pick them up at the next session start.
+The symlink is the whole installation. Atlas is a Claude Code plugin, and any
+directory under `~/.claude/skills/` holding a `.claude-plugin/plugin.json`
+loads as one at the next session start — no marketplace, no install step. The
+skills, the session-start hook and `bin/atlas-init` arrive together, so
+nothing has to be copied into `settings.json` by hand.
 
-To uninstall:
-
-```bash
-~/atlas/scripts/uninstall.sh
-```
+Confirm with `claude plugin list`; the entry reads `atlas@skills-dir`.
+Uninstall by removing the symlink.
 
 ## Initialize in a project
 
 ```bash
 cd ~/my-project
-~/atlas/scripts/atlas-init.sh
-```
-
-Or after adding `~/atlas/bin` to your `$PATH`:
-
-```bash
 atlas-init
 ```
+
+`bin/` joins the Bash tool's PATH while the plugin is enabled, so the agent can
+run `atlas-init` unqualified; from your own shell use `~/atlas/bin/atlas-init`.
 
 The init script scaffolds `docs/atlas/` and adds a short "this project uses
 atlas" pointer to `CLAUDE.md`, which routes the agent through `using-atlas`
@@ -72,13 +68,14 @@ cd ~/atlas
 git pull
 ```
 
-Symlinked skills update automatically — no reinstall needed.
+Skill bodies take effect immediately. A change to `hooks/hooks.json` needs
+`/reload-plugins` or a new session.
 
 ## Requirements
 
 - Python 3.8+ with `pyyaml` (for the scripts under `skills/*/scripts/`)
-- Claude Code (or any agent that reads `~/.claude/skills/`)
-- Bash (for `install.sh` / `atlas-init`)
+- Claude Code 2.1.x or later, for skills-directory plugin loading
+- Bash (for `atlas-init`)
 
 ## Skills shipped
 

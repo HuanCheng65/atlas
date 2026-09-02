@@ -12,7 +12,7 @@ lands as one commit the user can revert.
 Start with the shortlist:
 
 ```bash
-python3 ~/.claude/skills/atlas-compact/scripts/scan.py
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/atlas-compact/scripts/scan.py"
 ```
 
 It computes every mechanical signal. Read what it points at; do not read the
@@ -67,8 +67,8 @@ are candidates and not actions.
 ## Finishing
 
 ```bash
-python3 ~/.claude/skills/atlas-entity/scripts/validate.py
-python3 ~/.claude/skills/atlas-entity/scripts/reindex.py
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/atlas-entity/scripts/validate.py"
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/atlas-entity/scripts/reindex.py"
 ```
 
 Commit the run as one commit whose message says what changed in the store's

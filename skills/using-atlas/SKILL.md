@@ -103,7 +103,7 @@ won't. Recognition is yours.
 One command; the body is the record.
 
 ```bash
-python3 ~/.claude/skills/atlas-entity/scripts/new.py \
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/atlas-entity/scripts/new.py" \
     --type memory --title "The register cliff is at 128" --tags h20 <<'EOF'
 Any estimator change must be checked with `cuobjdump` first: crossing 128
 registers drops residency a tier. Measured in [[019-register-ladder]].
@@ -122,8 +122,8 @@ cannot: what was being done on some past day, and whether something was
 already tried.
 
 ```bash
-python3 ~/.claude/skills/using-atlas/scripts/transcripts.py list
-python3 ~/.claude/skills/using-atlas/scripts/transcripts.py grep "register cliff"
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/using-atlas/scripts/transcripts.py" list
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/using-atlas/scripts/transcripts.py" grep "register cliff"
 ```
 
 `list` names the sessions for this project, newest first, with their message
@@ -147,10 +147,10 @@ records-only commit is legitimate only when the records are themselves the work.
 
 | user signal | skill |
 |---|---|
-| non-trivial work about to start | `grill-me` |
-| list / search / audit records, or a bulk record operation | `atlas-entity` |
-| "clean up the store", memory over budget | `atlas-compact` |
-| onboarding an existing project | `atlas-bootstrap` |
+| non-trivial work about to start | `atlas:grill-me` |
+| list / search / audit records, or a bulk record operation | `atlas:atlas-entity` |
+| "clean up the store", memory over budget | `atlas:atlas-compact` |
+| onboarding an existing project | `atlas:atlas-bootstrap` |
 
 ## Anti-patterns
 

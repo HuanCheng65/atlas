@@ -5,20 +5,20 @@
 ## Questions (6)
 
 - **016** [[016-research-task-verification-when-hypothesis-itself-is-explora|Research task verification when hypothesis itself is exploratory]] — 2026-05-27 — tags: verification, research, grill-me
-- **017** [[017-cross-skill-code-duplication-threshold-and-consolidation-str|Cross-skill code duplication threshold and consolidation strategy]] — 2026-05-27 — tags: skills, refactor
 - **020** [[020-multi-machine-sync-strategy-for-divergent-atlas-state|Multi-machine sync strategy for divergent atlas state]] — 2026-05-27 — tags: sync, journal; cited by 1
 - **011** [[011-does-verification-result-carry-signal-all-closes-are-passed|Does verification-result carry signal? (all closes are 'passed')]] — 2026-06-12 — answered by 033; tags: journal, verification, dogfood; cited by 1
 - **014** [[014-stale-active-journal-threshold-currently-3-days|Stale active journal threshold (currently 3 days)]] — 2026-05-27 — answered by 033; tags: journal, atlas-compact; cited by 1
 - **015** [[015-topic-auto-promotion-heuristic-for-atlas-compact|Topic auto-promotion heuristic for atlas-compact]] — 2026-05-27 — answered by 036; tags: atlas-compact, topics; cited by 2
+- **017** [[017-cross-skill-code-duplication-threshold-and-consolidation-str|Cross-skill code duplication threshold and consolidation strategy]] — 2026-05-27 — answered by 037; tags: skills, refactor; cited by 1
 
-## Decisions (30)
+## Decisions (31)
 
 - **001** [[001-plain-text-git-as-the-data-layer|Plain text + git as the data layer]] — 2026-05-27 — tags: data-model, infrastructure; cited by 5
-- **002** [[002-skills-user-level-data-project-level-via-symlink-install|Skills user-level, data project-level via symlink install]] — 2026-05-27 — tags: packaging, infrastructure; cited by 1
 - **003** [[003-split-claude-md-agent-rules-from-project-md-project-backgrou|Split CLAUDE.md (agent rules) from PROJECT.md (project background)]] — 2026-05-27 — tags: docs, agent-onboarding
 - **006** [[006-verification-keepers-throwaways-instead-of-enforced-tdd|Verification + Keepers/Throwaways instead of enforced TDD]] — 2026-05-27 — tags: verification, workflow; cited by 1
 - **007** [[007-one-skill-per-cognitive-domain-deterministic-ops-live-in-scr|One skill per cognitive domain; deterministic ops live in scripts]] — 2026-05-27 — tags: skills, architecture; cited by 3
 - **008** [[008-author-project-md-for-orient-extraction-mutable-status-lives|Author PROJECT.md for orient extraction; mutable status lives in ROADMAP]] — 2026-05-28 — tags: project-md, orient, data-model, authoring, progressive-disclosure
+- **010** [[010-atlas-compact-keep-the-store-healthy-apply-without-confirmation|atlas-compact: keep the store healthy, apply without confirmation]] — 2026-06-12 — tags: skills, compact, agent-behavior, topics
 - **012** [[012-entity-frontmatter-holds-machine-summaries-the-body-owns-the-prose|Entity frontmatter holds machine summaries; the body owns the prose]] — 2026-07-28 — tags: entities, schema, validate, experiments
 - **013** [[013-event-driven-skill-activation-not-session-phase-driven|Event-driven skill activation, not session-phase-driven]] — 2026-05-27 — tags: skills, activation; cited by 5
 - **018** [[018-grill-me-grills-plans-against-active-decisions-and-the-gloss|grill-me grills plans against active decisions and the glossary]] — 2026-05-28 — tags: skills, grill-me, glossary, decisions
@@ -36,10 +36,11 @@
 - **034** [[034-the-session-start-hook-loads-state-directly|The session-start hook loads state directly]] — 2026-09-02 — tags: hooks, session-lifecycle, skills
 - **035** [[035-working-rules-are-un-mechanized-constraints-authored-not-promoted|Working rules are un-mechanized constraints, authored not promoted]] — 2026-09-02 — tags: project-md, decisions, agent-behavior
 - **036** [[036-compact-rewrites-the-memory-set-eviction-is-the-default|Compact rewrites the memory set; eviction is the default]] — 2026-09-02 — tags: atlas-compact, agent-behavior
+- **037** [[037-atlas-ships-as-a-plugin-one-install-unit|Atlas ships as a Claude Code plugin; skills, hook and CLI install as one unit]] — 2026-09-02 — tags: packaging, infrastructure, hooks
+- **002** [[002-skills-user-level-data-project-level-via-symlink-install|Skills user-level, data project-level via symlink install]] — 2026-05-27 — superseded by 037; tags: packaging, infrastructure; cited by 2
 - **004** [[004-three-entity-types-d-e-q-with-shared-base-frontmatter|Three entity types D/E/Q with shared base frontmatter]] — 2026-05-27 — superseded by 031; tags: data-model; cited by 2
 - **005** [[005-multiple-active-journal-entries-allowed-no-single-active-con|Multiple active journal entries allowed (no single-active constraint)]] — 2026-05-27 — superseded by 033; tags: journal, concurrency; cited by 4
 - **009** [[009-using-atlas-re-injects-per-context-window-resume-only-re-orients|using-atlas re-injects per context window; resume only re-orients]] — 2026-06-12 — superseded by 034; tags: skills, activation, hooks, session-lifecycle; cited by 1
-- **010** [[010-atlas-compact-keep-the-store-healthy-apply-without-confirmation|atlas-compact: keep the store healthy, apply without confirmation]] — 2026-06-12 — answered by 015; tags: skills, compact, agent-behavior, topics; cited by 1
 - **019** [[019-one-file-per-work-unit-plan-work-log-close-merged-into-a-jou|One file per work unit: plan, work log, close merged into a journal entry]] — 2026-05-27 — superseded by 033; tags: journal, data-model; cited by 2
 - **026** [[026-decisions-stay-adr-events-standing-rules-promote-into-project-md|Decisions stay ADR events; standing rules promote into PROJECT.md]] — 2026-06-12 — superseded by 035; tags: data-model, decisions, project-md, progressive-disclosure; cited by 4
 - **027** [[027-orient-scans-frontmatter-index-md-demoted-to-deterministic-human-view|Orient scans frontmatter; _index.md demoted to deterministic human view]] — 2026-06-12 — superseded by 034; tags: orient, data-model, indexes, determinism; cited by 1

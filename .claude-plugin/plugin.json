@@ -1,0 +1,11 @@
+{
+  "name": "atlas",
+  "description": "Operational memory for long-running AI-assisted projects: a git-tracked record store, a session-start hook that loads it, and the skills that read and write it.",
+  "version": "2.0.0",
+  "author": {
+    "name": "Echo"
+  },
+  "repository": "https://github.com/HuanCheng65/atlas",
+  "license": "MIT",
+  "keywords": ["memory", "records", "adr", "context"]
+}

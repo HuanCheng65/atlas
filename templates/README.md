@@ -63,11 +63,11 @@ Four types, with `type` an ordinary field that can be corrected later:
 
 | Want to | Action |
 |---|---|
-| Start a session | the SessionStart hook loads state; the agent invokes `using-atlas` |
+| Start a session | the SessionStart hook loads state; the agent invokes `atlas:using-atlas` |
 | Write a record | `atlas-entity/scripts/new.py`, one call, body on stdin |
-| Plan a non-trivial task | `grill-me` |
+| Plan a non-trivial task | `atlas:grill-me` |
 | Rename a record | `atlas-entity/scripts/rename.py` — never by hand, links resolve by filename |
 | Check the store | `atlas-entity/scripts/validate.py` |
-| List or audit records | `atlas-entity` |
-| Periodic maintenance | `atlas-compact` |
-| Onboard a new project | `atlas-bootstrap` |
+| List or audit records | `atlas:atlas-entity` |
+| Periodic maintenance | `atlas:atlas-compact` |
+| Onboard a new project | `atlas:atlas-bootstrap` |

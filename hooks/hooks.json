@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -d docs/atlas ] && python3 \"${CLAUDE_PLUGIN_ROOT}/skills/using-atlas/scripts/session_start.py\" || true"
+          }
+        ]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -d docs/atlas ] && python3 \"${CLAUDE_PLUGIN_ROOT}/skills/using-atlas/scripts/session_start.py\" --resume || true"
+          }
+        ]
+      }
+    ]
+  }
+}

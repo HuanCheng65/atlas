@@ -49,7 +49,7 @@ If `docs/atlas/` does not exist, ask the user to run atlas-init first. Do not pr
 Run scan.py from project root:
 
 ```bash
-python3 ~/.claude/skills/atlas-bootstrap/scripts/scan.py
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/atlas-bootstrap/scripts/scan.py"
 ```
 
 Output goes to `/tmp/atlas-bootstrap-scan.yaml`. Read it fully.
@@ -92,8 +92,8 @@ For each confirmed item:
 Then:
 
 ```bash
-python3 ~/.claude/skills/atlas-entity/scripts/reindex.py
-python3 ~/.claude/skills/atlas-entity/scripts/validate.py
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/atlas-entity/scripts/reindex.py"
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/atlas-entity/scripts/validate.py"
 ```
 
 `validate.py` MUST return OK before declaring complete. Fix errors before reporting.

@@ -36,13 +36,13 @@ AI-assisted workflow into reusable conventions and tooling.
 - Comparative benchmarking against Superpowers / GSD / others
 - Strict TDD or fixed-phase workflow enforcement
 - Semantic retrieval via vector DB (ripgrep + frontmatter covers 80% at zero cost)
-- Plugin marketplace distribution (deferred until there's a clear audience)
+- Marketplace distribution: atlas is packaged as a plugin but installs by symlink; a marketplace waits for an audience
 
 ## Hard constraints
 
 - Plain text + git only; no databases, no external services ([[001-plain-text-git-as-the-data-layer]])
 - Python + pyyaml + bash as the only runtime dependencies
-- Skills are user-level (cross-project); data is project-level (lives with the repo) ([[002-skills-user-level-data-project-level-via-symlink-install]])
+- Skills are user-level (cross-project); data is project-level (lives with the repo), and the whole machine-level half ships as one plugin ([[037-atlas-ships-as-a-plugin-one-install-unit]])
 - Maintenance overhead must stay low enough for one person to sustain indefinitely
 
 ## Working rules

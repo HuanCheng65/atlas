@@ -24,7 +24,7 @@ recomputes that on every run.
 ## Scripts
 
 ```bash
-S=~/.claude/skills/atlas-entity/scripts
+S="${CLAUDE_PLUGIN_ROOT}/skills/atlas-entity/scripts"
 
 python3 $S/validate.py            # identity, schema, links, direction
 python3 $S/reindex.py             # regenerate records/_index.md

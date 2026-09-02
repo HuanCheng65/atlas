@@ -33,7 +33,9 @@ Atlas composes the parts that work into a small, opinionated framework.
 
 1. **Data and skills are separate.** Skills (capability) live at user-level
    (`~/.claude/skills/`); data (state) lives at project-level
-   (`docs/atlas/`). One install, many projects.
+   (`docs/atlas/`). One install, many projects. Everything machine-level —
+   skills, the session-start hook, the CLI — is one plugin, so no part of it
+   can be installed while another is silently missing.
 2. **Plain text + git.** No SQLite, no vector DB. Markdown with YAML
    frontmatter is the only data format.
 3. **Append-only events, maintained views.** Journal entries are mutable
@@ -86,12 +88,12 @@ Atlas composes the parts that work into a small, opinionated framework.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Session-start hook (settings.json)                      │
+│  Session-start hook (plugin: hooks/hooks.json)           │
 │  session_start.py — loads state straight into context    │
 └────────────────────────┬─────────────────────────────────┘
                          │
 ┌────────────────────────▼─────────────────────────────────┐
-│  Skill layer (user-level: ~/.claude/skills/)             │
+│  Skill layer (plugin: skills/, invoked as atlas:<name>)  │
 │  ──────────────────────────────────────────────────      │
 │  using-atlas        grill-me                             │
 │  atlas-entity       atlas-compact       atlas-bootstrap  │
@@ -109,11 +111,19 @@ Atlas composes the parts that work into a small, opinionated framework.
                          │ created / maintained by
                          │
 ┌──────────────────────────────────────────────────────────┐
-│  Bootstrap layer (repo: bin/, install.sh)                │
-│  install.sh       — symlink skills into ~/.claude/       │
-│  atlas-init       — create or extend docs/atlas/         │
+│  Bootstrap layer                                         │
+│  ln -s <repo> ~/.claude/skills/atlas   — the whole       │
+│      machine-level install; loads as atlas@skills-dir    │
+│  bin/atlas-init   — create or extend docs/atlas/         │
 └──────────────────────────────────────────────────────────┘
 ```
+
+The repository is itself the plugin: `.claude-plugin/plugin.json` at the root,
+`hooks/`, `skills/` and `bin/` beside it. A directory under `~/.claude/skills/`
+carrying a plugin manifest is loaded as a plugin at personal scope, which is
+why a symlink is the entire installation and why edits to a skill body are live
+in the session that follows. `${CLAUDE_PLUGIN_ROOT}` is substituted inside skill
+bodies, so no skill hard-codes the install path.
 
 Project root files (`CLAUDE.md`, `PROJECT.md`) sit alongside the project's
 own code. `CLAUDE.md` holds agent rules and a pointer to atlas; `PROJECT.md`
@@ -332,8 +342,15 @@ pick the form — the agent and user do, per task.
   user edits intact.
 - **`atlas-init --research / --dev` flags** — deferred. One template
   fits both for now; revisit when real friction shows up.
-- **Plugin marketplace distribution** — deferred. Dotfiles + symlink is
-  simpler for a personal tool.
+- **Marketplace distribution** — deferred. Packaging and distribution are
+  separable: the plugin format is worth adopting for the hook and the path
+  variables alone, and a marketplace adds a cached copy plus an update step
+  that breaks the live-edit loop atlas is developed with.
+- **`atlas-init` installing the session-start hook** — rejected. A
+  project-level command writing machine-level configuration inverts the
+  ownership, and the next project's init would rewrite it. The observed
+  failure it would have papered over is that nothing installed the hook at
+  all for weeks, unnoticed, because no artifact owned machine-level setup.
 
 ## Open design questions
 
@@ -354,7 +371,7 @@ pick the form — the agent and user do, per task.
 - ~~**`bootstrap-extras.md` consumption.**~~ Resolved: it is a one-time
   onboarding leftover, not a recurring concern — the user processes or
   deletes it at leisure; compact does not scan it.
-- **Cross-skill code sharing.** `using-atlas` and `atlas-compact` import
-  the record layer from `atlas-entity` by relative path rather than carrying
-  copies. This trades skill self-containment for a single loader; whether
-  the coupling is acceptable at distribution time is untested.
+- ~~**Cross-skill code sharing.**~~ Resolved by the plugin: skills ship and
+  install as one unit rather than individually, so a skill importing a
+  sibling's record layer by relative path is structural rather than a bet on
+  how the reader installed things.
