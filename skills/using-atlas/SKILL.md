@@ -114,6 +114,29 @@ Tags come from the store's existing vocabulary; the script prints it and
 refuses an unknown tag unless you pass `--new-tag` deliberately. Reusing what is
 there is what keeps tags worth grouping by.
 
+## When the store does not have the answer
+
+The store holds what was worth keeping. The raw conversation is the other
+half — complete, recent, and disposable — and answers two things the store
+cannot: what was being done on some past day, and whether something was
+already tried.
+
+```bash
+python3 ~/.claude/skills/using-atlas/scripts/transcripts.py list
+python3 ~/.claude/skills/using-atlas/scripts/transcripts.py grep "register cliff"
+```
+
+`list` names the sessions for this project, newest first, with their message
+counts; `grep` searches the prose across them and returns dated excerpts.
+Both skip tool calls and their results, which are most of the bytes and none
+of the meaning.
+
+**This machine only, and only recently.** Transcripts sit outside the
+repository and are pruned after a few weeks, so two machines working on one
+project never share them. Take that as a signal rather than a limitation:
+wanting something in a transcript to be durable, or visible from elsewhere,
+means it should have been a record.
+
 ## Atlas changes ride the work's commits
 
 Record changes are part of the work unit they describe. Stage them with the
