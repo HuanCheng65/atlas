@@ -106,5 +106,39 @@ def test_singleton_tags_are_listed(project):
     assert "lonely" in section and "shared" not in section
 
 
+def git_repo(project, **files):
+    for name, text in files.items():
+        path = project / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    for command in (["init", "-q"], ["add", "-A"]):
+        subprocess.run(["git", *command], cwd=project, capture_output=True, check=True)
+
+
+def test_record_links_escaping_the_store_are_reported(project):
+    make(project, "decision", "A settled choice", "body\n", new_tags="scale")
+    git_repo(project,
+             **{"docs/paper-story.md": "As shown in [[001-a-settled-choice]].\n"})
+
+    section = run(SCAN, cwd=project).stdout.split(
+        "## Record links written outside the store")[1].split("##")[0]
+    assert "docs/paper-story.md" in section
+    assert "001-a-settled-choice" in section
+
+
+def test_the_store_and_the_constitution_are_not_leaks(project):
+    # PROJECT.md links records by design, and inside the store a link is the
+    # point. Only documents the store does not own count.
+    make(project, "decision", "A settled choice", "body\n", new_tags="scale")
+    git_repo(project, **{
+        "PROJECT.md": PROJECT_MD + "\n- A rule ([[001-a-settled-choice]])\n",
+        "notes.md": "No identifiers here, just prose about the settled choice.\n",
+    })
+
+    section = run(SCAN, cwd=project).stdout.split(
+        "## Record links written outside the store")[1].split("##")[0]
+    assert "*(none)*" in section
+
+
 def test_empty_store_says_so(project):
     assert "no records" in run(SCAN, cwd=project).stdout

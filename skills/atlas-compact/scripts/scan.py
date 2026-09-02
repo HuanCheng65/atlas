@@ -14,6 +14,7 @@ Usage:
     scan.py
 """
 import re
+import subprocess
 import sys
 from collections import defaultdict
 from datetime import date, datetime
@@ -41,6 +42,34 @@ def parse_day(value):
         return datetime.strptime(str(value)[:10], "%Y-%m-%d").date()
     except (ValueError, TypeError):
         return None
+
+
+def leaked_links():
+    """Record links written into documents the store does not own.
+
+    A number means nothing to a reader who is not holding the store, and it
+    stops meaning anything at all once the store is renumbered. Markdown only:
+    a wikilink is a markdown construct, and an identifier appearing in code or
+    in a filename is a name rather than a reference.
+    """
+    listed = subprocess.run(["git", "ls-files", "-z", "*.md"],
+                            capture_output=True, text=True)
+    if listed.returncode != 0:
+        return {}
+
+    found = defaultdict(set)
+    for name in listed.stdout.split("\0"):
+        path = Path(name) if name else None
+        if path is None or path == Path("PROJECT.md") or _lib.ATLAS in path.parents:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for stem in links.WIKILINK_RE.findall(links.strip_code(text)):
+            if _lib.STEM_RE.match(stem.strip()):
+                found[str(path)].add(stem.strip())
+    return found
 
 
 def neighbourhood(rid, mentions, incoming):
@@ -120,6 +149,14 @@ def main():
     for rid, paths in dead.items():
         print(f"- [[{records[rid].stem}]] — {', '.join(sorted(paths))}")
     if not dead:
+        print("*(none)*")
+    print()
+
+    print("## Record links written outside the store")
+    escaped = leaked_links()
+    for path, stems in sorted(escaped.items()):
+        print(f"- `{path}` — {', '.join(sorted(stems))}")
+    if not escaped:
         print("*(none)*")
     print()
 

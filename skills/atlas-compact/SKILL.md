@@ -63,6 +63,11 @@ are candidates and not actions.
   editing either.
 - **Tags used once.** Usually a synonym for a tag already in the store. Fold
   them into the existing vocabulary; leave a genuinely distinct one alone.
+- **Record links written outside the store.** A record number means nothing to
+  a reader who is not holding the store, and nothing at all once the store is
+  renumbered. Rewrite the sentence to say what was decided; do not replace the
+  link with a longer reference. If the document is an archived one, leave it —
+  it was true when it was written.
 
 ## Finishing
 

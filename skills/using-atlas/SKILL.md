@@ -22,6 +22,13 @@ When discussing the work, translate the data layer into plain language.
 - **Past work**: refer to what was done, not the file it lives in.
 - **Constraints and questions**: describe them, don't cite them.
 
+The same holds for what you write into the project's own files. A record link
+belongs inside `docs/atlas/` and in PROJECT.md, whose constitution cites
+records by design. Everywhere else — design notes, result files, READMEs,
+commit messages — write what was decided. A number in those is unreadable
+without the store, and stops meaning anything at all if the store is ever
+renumbered.
+
 Do not name the tooling either. The user does not need to know a framework is
 involved; from their side this is simply that you remember the project. Say
 "we settled this earlier" or "the notes say", never "atlas says" or "the
@@ -169,3 +176,5 @@ records-only commit is legitimate only when the records are themselves the work.
 - **DO NOT** edit a committed record's claims — write a newer record with a
   typed edge pointing back at it.
 - **DO NOT** cite record numbers in substantive conversation.
+- **DO NOT** write `[[NNN-slug]]` into any file outside `docs/atlas/` and
+  PROJECT.md.
