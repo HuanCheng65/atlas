@@ -1,11 +1,9 @@
-"""Tests for atlas-compact's scan.py — the maintenance agenda generator.
+"""Tests for atlas-compact's scan.py — the candidate-list generator.
 
-Builds a fixture store with known backlog and consolidation candidates,
-then asserts each agenda section reports exactly them. `--today` pins the
-clock so the agenda is deterministic.
+The scan exists so a compact run reads a shortlist instead of the store, so
+what matters is that each signal reports exactly the records it should and
+stays quiet otherwise.
 """
-import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,147 +11,99 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SKILLS = REPO / "skills"
+SCAN = REPO / "skills" / "atlas-compact" / "scripts" / "scan.py"
+NEW = REPO / "skills" / "atlas-entity" / "scripts" / "new.py"
 
-SCAN = SKILLS / "atlas-compact" / "scripts" / "scan.py"
-OPEN = SKILLS / "atlas-log" / "scripts" / "open.py"
-APPEND = SKILLS / "atlas-log" / "scripts" / "append.py"
-CLOSE = SKILLS / "atlas-log" / "scripts" / "close.py"
-NEW = SKILLS / "atlas-entity" / "scripts" / "new.py"
-
-TODAY = "2026-06-12"
-
-PROJECT_MD = "# Project: Fixture\n\n## Background\n\nScan fixture.\n"
+PROJECT_MD = "# Project: Fixture\n\n## Background\n\nFixture project.\n"
 
 
 def run(script, *args, cwd, stdin=None):
-    return subprocess.run(
-        [sys.executable, str(script), *args],
-        cwd=cwd, input=stdin, capture_output=True, text=True,
-    )
+    return subprocess.run([sys.executable, str(script), *args],
+                          cwd=cwd, input=stdin, capture_output=True, text=True)
 
 
-def ok(script, *args, cwd, stdin=None):
-    proc = run(script, *args, cwd=cwd, stdin=stdin)
-    assert proc.returncode == 0, f"{script.name} failed:\n{proc.stderr}"
-    return proc
-
-
-def set_fields(path, **fields):
-    text = path.read_text(encoding="utf-8")
-    for key, value in fields.items():
-        text = re.sub(rf"(?m)^{key}: .*$", f"{key}: {value}", text, count=1)
-    path.write_text(text, encoding="utf-8")
+def make(project, rtype, title, body, tags=None, new_tags=None, date=None):
+    args = ["--type", rtype, "--title", title]
+    if tags:
+        args += ["--tags", tags]
+    if new_tags:
+        args += ["--new-tag", new_tags]
+    if date:
+        args += ["--date", date]
+    if rtype == "experiment":
+        for field in ("hypothesis", "config", "result", "conclusion", "artifacts"):
+            args += [f"--{field}", "x"]
+    proc = run(NEW, *args, cwd=project, stdin=body)
+    assert proc.returncode == 0, proc.stderr
+    return proc.stdout.strip().splitlines()[-1]
 
 
 @pytest.fixture
-def store(tmp_path):
-    """A store with one of everything the agenda should catch.
-
-    - stale-work: active, last work-log entry 10 days before TODAY
-    - fresh-work: active, work-log entry on TODAY
-    - three closed entries tagged `perf` (cluster candidate), one of them
-      also tagged `caching` and closed after Q-001 was raised
-    - D-001/D-002 active, sharing tags [perf, caching] (overlap pair);
-      D-001 pending, D-002 archival
-    - Q-001 open, tagged [caching]
-    """
-    atlas = tmp_path / "docs" / "atlas"
-    for sub in ("journal", "decisions", "experiments", "questions", "topics", "_templates"):
-        (atlas / sub).mkdir(parents=True)
-    for tpl in (REPO / "templates" / "_templates").glob("*.md"):
-        shutil.copy(tpl, atlas / "_templates" / tpl.name)
+def project(tmp_path):
+    (tmp_path / "docs" / "atlas").mkdir(parents=True)
     (tmp_path / "PROJECT.md").write_text(PROJECT_MD, encoding="utf-8")
-
-    ok(OPEN, "--slug", "stale-work", "--at", "2026-05-30 10:00", cwd=tmp_path, stdin="x")
-    ok(APPEND, "--slug", "stale-work", "--at", "2026-06-02 10:00", cwd=tmp_path, stdin="note")
-    ok(OPEN, "--slug", "fresh-work", "--at", f"{TODAY} 09:00", cwd=tmp_path, stdin="x")
-    ok(APPEND, "--slug", "fresh-work", "--at", f"{TODAY} 10:00", cwd=tmp_path, stdin="note")
-
-    for i, (slug, tags, closed_at) in enumerate([
-        ("perf-a", "perf", "2026-06-05 12:00"),
-        ("perf-b", "perf", "2026-06-06 12:00"),
-        ("perf-c", "perf,caching", "2026-06-07 12:00"),
-    ]):
-        ok(OPEN, "--slug", slug, "--tags", tags, "--at", "2026-06-04 10:00",
-           cwd=tmp_path, stdin="x")
-        ok(CLOSE, "--slug", slug, "--result", "passed", "--at", closed_at,
-           cwd=tmp_path, stdin="done")
-
-    for title, triage in [("First rule", "pending"), ("Second rule", "archival")]:
-        proc = ok(NEW, "--type", "D", title, cwd=tmp_path)
-        path = tmp_path / proc.stdout.strip().splitlines()[-1]
-        set_fields(path, status="active", triage=triage,
-                   tags="[perf, caching]", date="2026-06-01")
-
-    proc = ok(NEW, "--type", "Q", "Is the cache layer settled?", cwd=tmp_path)
-    set_fields(tmp_path / proc.stdout.strip().splitlines()[-1],
-               tags="[caching]", date="2026-06-01")
-
     return tmp_path
 
 
-def agenda(store, *extra):
-    return ok(SCAN, "--today", TODAY, *extra, cwd=store).stdout
+def test_memory_budget_is_reported(project):
+    make(project, "memory", "Keep registers under 128", "body\n", new_tags="h20")
+    out = run(SCAN, cwd=project).stdout
+    assert "Memory budget: 1 / 40" in out
+    assert "over budget" not in out
 
 
-def section(text, heading):
-    return text.split(f"## {heading}")[1].split("## ")[0]
+def test_open_question_reports_age_and_citations(project):
+    make(project, "question", "How large may a store grow", "body\n",
+         new_tags="scale", date="2026-01-01")
+    make(project, "decision", "Cap the store", "Bounded by [[001-how-large-may-a-store-grow]].\n",
+         tags="scale")
+    out = run(SCAN, cwd=project).stdout
+    assert "cited by 1: [[001-how-large-may-a-store-grow]]" in out
 
 
-def test_stale_actives(store):
-    out = agenda(store)
-    sec = section(out, "Stale active entries")
-    assert "stale-work" in sec and "10 days" in sec
-    assert "fresh-work" not in sec
+def test_answered_question_drops_off_the_list(project):
+    make(project, "question", "How large may a store grow", "body\n", new_tags="scale")
+    make(project, "decision", "Cap the store",
+         "Settled: (answers:: [[001-how-large-may-a-store-grow]]).\n", tags="scale")
+    out = run(SCAN, cwd=project).stdout
+    section = out.split("## Questions with no answering record")[1].split("##")[0]
+    assert "*(none)*" in section
 
 
-def test_pending_triage(store):
-    sec = section(agenda(store), "Decisions pending triage")
-    assert "D-001" in sec and "First rule" in sec
-    assert "D-002" not in sec
+def test_records_sharing_a_neighbourhood_are_paired(project):
+    for n in range(3):
+        make(project, "experiment", f"Baseline {n}", "body\n", new_tags="bench")
+    cites = " ".join(f"[[00{n}-baseline-{n - 1}]]" for n in (1, 2, 3))
+    make(project, "decision", "First reading", f"From {cites}.\n", tags="bench")
+    make(project, "decision", "Second reading", f"Also from {cites}.\n", tags="bench")
+    out = run(SCAN, cwd=project).stdout
+    assert "004-first-reading" in out and "005-second-reading" in out
 
 
-def test_open_questions_with_age(store):
-    sec = section(agenda(store), "Open questions")
-    assert "Q-001" in sec and "11 days old" in sec
+def test_dead_paths_are_reported(project):
+    make(project, "memory", "Estimator lives here",
+         "The loop is in `src/gone/estimator.cuh`.\n", new_tags="cuda")
+    out = run(SCAN, cwd=project).stdout
+    assert "src/gone/estimator.cuh" in out
 
 
-def test_possibly_answered_hint(store):
-    sec = section(agenda(store), "Possibly answered")
-    assert "Q-001" in sec and "perf-c" in sec and "caching" in sec
-    assert "perf-a" not in sec  # no tag overlap with the question
+def test_live_paths_are_not_reported(project):
+    (project / "src").mkdir()
+    (project / "src" / "here.py").write_text("", encoding="utf-8")
+    make(project, "memory", "Estimator lives here", "See `src/here.py`.\n",
+         new_tags="cuda")
+    out = run(SCAN, cwd=project).stdout
+    section = out.split("## Records citing paths that no longer exist")[1].split("##")[0]
+    assert "*(none)*" in section
 
 
-def test_decision_overlap_pair(store):
-    sec = section(agenda(store), "Decision pairs sharing")
-    assert "D-001 + D-002" in sec and "caching, perf" in sec
+def test_singleton_tags_are_listed(project):
+    make(project, "decision", "One", "body\n", new_tags="shared,lonely")
+    make(project, "decision", "Two", "body\n", tags="shared")
+    out = run(SCAN, cwd=project).stdout
+    section = out.split("## Tags used once")[1]
+    assert "lonely" in section and "shared" not in section
 
 
-def test_tag_clusters_and_topics(store):
-    sec = section(agenda(store), "Tag clusters")
-    assert "**perf** (3)" in sec
-    assert "**caching**" not in sec  # only 1 closed entry, below cluster-min
-    assert "existing topics: (none)" in sec
-
-    (store / "docs" / "atlas" / "topics" / "perf-lessons.md").write_text("# x\n")
-    sec = section(agenda(store), "Tag clusters")
-    assert "perf-lessons" in sec
-
-
-def test_last_compact_run(store):
-    assert "Last compact run: never" in agenda(store)
-    ok(OPEN, "--slug", "compact-run", "--tags", "compact", "--at", "2026-06-08 10:00",
-       cwd=store, stdin="x")
-    ok(CLOSE, "--slug", "compact-run", "--result", "passed", "--at", "2026-06-08 11:00",
-       cwd=store, stdin="done")
-    assert "Last compact run: 2026-06-08" in agenda(store)
-
-
-def test_agenda_deterministic(store):
-    assert agenda(store) == agenda(store)
-
-
-def test_stale_threshold_flag(store):
-    sec = section(agenda(store, "--stale-days", "30"), "Stale active entries")
-    assert "stale-work" not in sec
+def test_empty_store_says_so(project):
+    assert "no records" in run(SCAN, cwd=project).stdout

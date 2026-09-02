@@ -5,30 +5,31 @@ of skills and data conventions that keep multi-session work coherent.
 
 ## What it provides
 
-A user-level set of **Claude Code skills** that route an agent through the
-lifecycle of a project's operational memory, plus a per-project **data
-layout** under `docs/atlas/` with templates, validated frontmatter, and
-auto-generated indexes.
+A per-project **record store** under `docs/atlas/`, a session-start hook that
+loads its current state directly into the agent's context, and a small set of
+**Claude Code skills** for writing to it.
 
-- **using-atlas** — session-start entry point; loads project state, watches
-  for work intent, opens a journal entry when concrete work begins
-- **atlas-orient** — loads current state (decisions, open questions,
-  active and recent work) into the agent's context; produces a compact
-  navigator summary
-- **atlas-log** — maintains the journal under `docs/atlas/journal/` via
-  open / append / close scripts (all timestamps from `datetime.now()`, never
-  agent-fabricated)
-- **atlas-entity** — manages structured decisions (D-NNN), experiments
-  (E-NNN), and open questions (Q-NNN)
-- **grill-me** — interview-driven planning before non-trivial work; produces
-  a Plan with mandatory verification criteria
-- **atlas-bootstrap** — one-time onboarding for an existing project
-  (combines a deterministic scan with a 4-round interview)
+Every record is one numbered file. Frontmatter carries identity; the body
+carries the prose and every relation, written as Obsidian wikilinks in the
+sentences that explain them. Nothing stores state that a later record can
+determine: superseded, refuted and answered are computed from the link graph,
+so no record has to be revisited to stay true.
+
+- **using-atlas** — always loaded; what earns a record, when to write one, and
+  how relations are expressed
+- **atlas-entity** — store operations: validate, reindex, create, rename, and
+  the one-time migration from the old D/E/Q layout
+- **grill-me** — interview-driven planning before non-trivial work; produces a
+  plan with mandatory verification criteria
+- **atlas-compact** — periodic maintenance in two jobs: rewriting the memory
+  set within its budget, and reviewing script-computed staleness candidates
+- **atlas-bootstrap** — one-time onboarding for an existing project (a
+  deterministic scan plus a 4-round interview)
 
 Plus a small CLI (`atlas-init`) to scaffold `docs/atlas/` in any project.
 
-See `docs/design.md` for design notes and `docs/atlas/decisions/_index.md`
-for the framework's own decision log.
+See `docs/design.md` for design notes and `docs/atlas/records/_index.md` for
+the framework's own store.
 
 ## Install (one-time, per machine)
 
@@ -83,13 +84,11 @@ Symlinked skills update automatically — no reinstall needed.
 
 | Skill | Status |
 |---|---|
-| using-atlas | ready — session entry point, watches for work intent, routes |
-| atlas-orient | ready — loads project state into agent context |
-| atlas-log | ready — journal lifecycle (open / append / close) |
-| atlas-entity | ready — D / E / Q lifecycle, validation, reindex |
+| using-atlas | ready — always loaded; record-writing rules and triggers |
+| atlas-entity | ready — validate, reindex, create, rename, migrate |
 | grill-me | ready — interview-driven planning with verification criteria |
 | atlas-bootstrap | ready — one-time onboarding for existing projects |
-| atlas-compact | ready — periodic maintenance: clears backlog (stale entries, untriaged decisions, aging questions), consolidates records (merges, topic distillation), one revertable commit per run |
+| atlas-compact | ready — memory consolidation and store review, one revertable commit per run |
 
 ## License
 

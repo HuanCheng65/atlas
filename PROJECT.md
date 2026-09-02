@@ -40,42 +40,44 @@ AI-assisted workflow into reusable conventions and tooling.
 
 ## Hard constraints
 
-- Plain text + git only; no databases, no external services (D-001)
+- Plain text + git only; no databases, no external services ([[001-plain-text-git-as-the-data-layer]])
 - Python + pyyaml + bash as the only runtime dependencies
-- Skills are user-level (cross-project); data is project-level (lives with the repo) (D-002)
+- Skills are user-level (cross-project); data is project-level (lives with the repo) ([[002-skills-user-level-data-project-level-via-symlink-install]])
 - Maintenance overhead must stay low enough for one person to sustain indefinitely
 
 ## Working rules
 
-<!-- The constitution: standing rules currently in force, promoted from
-     decisions. One line per rule, ending with its (D-NNN) pointer back to
-     the full record. validate.py enforces the pairing both ways. -->
+<!-- Rules in force that no mechanism enforces. A rule belongs here exactly
+     when nothing stops the agent from violating it: if a script, hook or
+     validator can catch it, write the check instead. One line per rule,
+     ending with a link to the record that justifies it. Authored by hand —
+     nothing is promoted here automatically. -->
 
-- Skills activate on events, never on session phases (D-007)
-- Every plan declares Verification; artifacts are classified Keepers vs Throwaways (D-008)
-- One skill per cognitive domain; deterministic operations live in scripts (D-009)
-- Title is the menu: every entity/journal title carries the decision signal; bodies load on demand (D-012)
-- Triggers live in persistently-loaded surfaces, never only in skill bodies (D-013)
-- Distributed skill bodies never cite this project's entity IDs; reasoning stated inline (D-015)
-- PROJECT.md is authored for extraction: first sentences self-contained; mutable status lives in ROADMAP (D-016)
-- New decisions get triaged: standing rules promote here, events stay archival — test: does violating it produce visible resistance? (D-017)
-- Agent rules become mechanisms (script defaults/refusals, hooks, validators) wherever possible; prose is for judgment calls (D-020)
-- Atlas changes ride the work unit's own commits; atlas-only commits only when atlas content is itself the work (D-021)
+- Skills activate on events, never on session phases ([[013-event-driven-skill-activation-not-session-phase-driven]])
+- Every plan declares Verification; artifacts are classified Keepers vs Throwaways ([[006-verification-keepers-throwaways-instead-of-enforced-tdd]])
+- One skill per cognitive domain; deterministic operations live in scripts ([[007-one-skill-per-cognitive-domain-deterministic-ops-live-in-scr]])
+- Title is the menu: every record title carries the claim; bodies load on demand ([[023-progressive-disclosure-data-layer-title-is-the-menu-body-loa]])
+- Triggers live in persistently-loaded surfaces, never only in skill bodies ([[024-triggers-live-where-the-agent-always-sees-them-not-in-skill]])
+- Distributed skill bodies never cite this project's record numbers; reasoning stated inline ([[025-distributed-skill-bodies-cite-reasoning-inline-never-this-pr]])
+- PROJECT.md is authored for extraction: first sentences self-contained; mutable status lives in ROADMAP ([[008-author-project-md-for-orient-extraction-mutable-status-lives]])
+- A record's truth may not depend on a future edit: state is derived, links point backwards, and a published record is superseded rather than changed
+- Agent rules become mechanisms (script defaults/refusals, hooks, validators) wherever possible; prose is for judgment calls ([[028-mechanical-affordances-over-prose-constraints-for-agent-rules]])
+- Atlas changes ride the work unit's own commits; atlas-only commits only when atlas content is itself the work ([[029-framework-generates-no-events-silent-ops-records-ride-work-commits]])
 
 ## Glossary
 
 - **atlas** — this project's name; also the per-project data directory `docs/atlas/`
-- **Entity** — structured record with frontmatter and lifecycle; one of D-NNN / E-NNN / Q-NNN
-- **D-NNN (Decision)** — long-term architectural or strategic choice
-- **E-NNN (Experiment)** — research run with hypothesis, config, result
-- **Q-NNN (Question)** — open question awaiting resolution
-- **Journal** — append-only time-ordered event log at `docs/atlas/journal/`
-- **Topic** — free-form derived knowledge note at `docs/atlas/topics/`; emerges from journal patterns
-- **Compact** — maintenance pass that clears backlog (stale actives, pending triage, aging questions) and consolidates the store (merges, closes, topics, wording); runs without per-item confirmation, lands as one revertable commit
+- **Record** — one file at `docs/atlas/records/NNN-slug.md`, on one counter shared by every type; frontmatter carries identity, the body carries the prose and every relation
+- **Memory** — a record holding a constraint currently in force; its title is loaded into every session, and it is rewritten in place rather than superseded
+- **Decision** — a record of a choice and the alternative it beat, in ADR form: context, decision, consequences
+- **Experiment** — a record of a measurement: hypothesis, setup, result, conclusion
+- **Question** — a record of something unresolved; answered when a later record declares an `answers` edge
+- **Typed edge** — a relation written into a body sentence as `(supersedes:: [[NNN-slug]])`; changes how the target renders, and always points at a lower number
+- **Derived state** — superseded, refuted, answered: computed from the edges pointing at a record, never stored in it
+- **Publication boundary** — the commit: an uncommitted record is a draft and may be rewritten, a committed one is superseded instead
+- **Compact** — maintenance pass in two jobs: rewriting the memory set within its budget, and reviewing script-computed candidates for records that stopped being true; runs without per-item confirmation, lands as one revertable commit
 - **Keeper / Throwaway** — classification of verification artifacts as long-term regression vs development-time scaffold
-- **Supersedes chain** — audit trail of decision evolution (D-A → D-B → D-C)
-- **Working rules** — the constitution section of PROJECT.md: standing rules currently in force, one line each, pointing back to the decision that established it
-- **Triage** — a decision's review state: pending (awaiting review, shown in orient's menu), promoted (one-line rule in Working rules), or archival (event record consulted on demand)
+- **Working rules** — the constitution section of PROJECT.md: rules in force that no mechanism enforces, one line each, linking to the record that justifies it
 
 ## Collaborators & stakeholders
 

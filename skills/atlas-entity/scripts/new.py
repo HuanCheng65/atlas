@@ -1,86 +1,142 @@
 #!/usr/bin/env python3
-"""Create a new entity (D/E/Q) under docs/atlas/.
+"""Create a record under docs/atlas/records/.
 
-Usage:
-    new.py --type D "title goes here"
-    new.py --type E "Kuairand-1K B-adaptive run"
-    new.py --type Q "does gamma generalize across batch sizes"
+One call writes the whole record: identity, tags, and the body on stdin. The
+cost of writing a finding down has to stay at one command, because whenever
+filing was more expensive than not filing, the findings went wherever filing
+was free and stayed there.
+
+    new.py --type memory --title "The register cliff is at 128" \\
+           --tags h20,occupancy <<'EOF'
+    Body prose, with [[021-overlap-loses|links]] where the reasoning is.
+    EOF
+
+Experiments carry five one-line machine summaries as flags:
+
+    new.py --type experiment --title "..." --tags h20 \\
+           --hypothesis "..." --config "..." --result "..." \\
+           --conclusion "..." --artifacts "..." < body.md
+
+A tag that is not already in use must be introduced with --new-tag. Reusing
+the existing vocabulary is what keeps tags worth grouping by; without the
+check the store drifts into a long tail of words used exactly once.
 """
 import argparse
 import datetime
-import json
 import re
 import sys
+import unicodedata
+from collections import Counter
 from pathlib import Path
 
-# allow direct invocation without PYTHONPATH
 sys.path.insert(0, str(Path(__file__).parent))
 import _lib  # noqa: E402
 
-TYPE_TEMPLATE = {"D": "decision.md", "E": "experiment.md", "Q": "question.md"}
+MAX_SLUG_LEN = 70
+
+EXPERIMENT_FIELDS = ["hypothesis", "config", "result", "conclusion", "artifacts"]
 
 
 def slugify(title):
-    s = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
-    if len(s) > 70:
-        s = s[:70].rsplit("-", 1)[0]
+    """ASCII slug from a title, or '' when the title leaves nothing usable.
+
+    A CJK title survives ASCII folding only as whatever digits it contained,
+    so "寄存器悬崖在 128" would otherwise become `001-128.md`. Requiring a
+    letter turns that into a request for an explicit --slug.
+    """
+    ascii_form = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^a-z0-9]+", "-", ascii_form.lower()).strip("-")
+    if not re.search(r"[a-z]", s):
+        return ""
+    if len(s) > MAX_SLUG_LEN:
+        s = s[:MAX_SLUG_LEN].rsplit("-", 1)[0]
         print(
-            f"NOTE: slug truncated to {s!r} — the title exceeds the ~70-char "
+            f"NOTE: slug truncated to {s!r} — the title exceeds the ~{MAX_SLUG_LEN}-char "
             "slug rule, consider tightening it",
             file=sys.stderr,
         )
     return s
 
 
-def next_id(type_letter):
-    target_dir = _lib.ATLAS / _lib.TYPE_DIR[type_letter]
-    target_dir.mkdir(parents=True, exist_ok=True)
-    pattern = re.compile(rf"^{type_letter}-(\d+)")
-    existing = []
-    for p in target_dir.glob(f"{type_letter}-*.md"):
-        m = pattern.match(p.name)
-        if m:
-            existing.append(int(m.group(1)))
-    n = max(existing, default=0) + 1
-    return f"{type_letter}-{n:03d}"
+def tag_vocabulary(records):
+    counts = Counter()
+    for rec in records.values():
+        for tag in rec.meta.get("tags") or []:
+            counts[tag] += 1
+    return counts
+
+
+def format_vocabulary(counts):
+    if not counts:
+        return "  (the store has no tags yet — every tag is new)"
+    return "\n".join(
+        f"  {tag} ({n})" for tag, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    )
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--type", required=True, choices=["D", "E", "Q"])
-    ap.add_argument("title")
+    ap.add_argument("--type", required=True, choices=list(_lib.TYPES))
+    ap.add_argument("--title", required=True)
+    ap.add_argument("--slug", help="override the slug derived from the title")
+    ap.add_argument("--tags", default="", help="comma-separated, from the existing vocabulary")
+    ap.add_argument("--new-tag", default="",
+                    help="comma-separated tags being introduced deliberately")
+    ap.add_argument("--date", help="override today's date (YYYY-MM-DD)")
+    for field in EXPERIMENT_FIELDS:
+        ap.add_argument(f"--{field}", help=f"experiment {field} — one line")
     args = ap.parse_args()
 
-    template_path = _lib.ATLAS / "_templates" / TYPE_TEMPLATE[args.type]
-    if not template_path.exists():
-        sys.exit(f"ERROR: template not found at {template_path}")
+    body = sys.stdin.read().strip()
+    if not body:
+        sys.exit("ERROR: the body is the record; pass it on stdin")
 
-    entity_id = next_id(args.type)
-    slug = slugify(args.title)
-    today = datetime.date.today().isoformat()
+    records = _lib.load_all()
 
-    content = template_path.read_text(encoding="utf-8")
-    # The frontmatter title must be YAML-escaped (titles may contain ": " etc.);
-    # a JSON string is a valid YAML double-quoted scalar. Body {{TITLE}} stays raw.
-    content = content.replace(
-        "title: {{TITLE}}", "title: " + json.dumps(args.title, ensure_ascii=False), 1
-    )
-    content = (
-        content.replace("{{ID}}", entity_id)
-        .replace("{{TITLE}}", args.title)
-        .replace("{{DATE}}", today)
-        .replace("{{SLUG}}", slug)
-    )
+    slug = args.slug or slugify(args.title)
+    if not slug:
+        sys.exit(f"ERROR: {args.title!r} yields an empty slug — pass --slug explicitly")
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
+        sys.exit(f"ERROR: slug {slug!r} must be lowercase words joined by hyphens")
 
-    out_path = _lib.ATLAS / _lib.TYPE_DIR[args.type] / f"{entity_id}-{slug}.md"
-    if out_path.exists():
-        sys.exit(f"ERROR: file already exists: {out_path}")
-    out_path.write_text(content, encoding="utf-8")
+    known = tag_vocabulary(records)
+    declared_new = [t.strip() for t in args.new_tag.split(",") if t.strip()]
+    tags = [t.strip() for t in args.tags.split(",") if t.strip()] + declared_new
+    unknown = [t for t in tags if t not in known and t not in declared_new]
+    if unknown:
+        sys.exit(
+            f"ERROR: {', '.join(unknown)} — not in the store's vocabulary. Reuse one of "
+            f"these, or pass --new-tag to introduce it deliberately:\n"
+            + format_vocabulary(known)
+        )
+
+    if args.type == "experiment":
+        missing = [f for f in EXPERIMENT_FIELDS if not getattr(args, f)]
+        if missing:
+            sys.exit(f"ERROR: an experiment needs {', '.join('--' + m for m in missing)}")
+
+    rid = _lib.next_id(records)
+    meta = {
+        "id": rid,
+        "title": args.title,
+        "date": args.date or datetime.date.today().isoformat(),
+        "type": args.type,
+        "tags": tags,
+    }
+    if args.type == "experiment":
+        for field in EXPERIMENT_FIELDS:
+            meta[field] = getattr(args, field)
+
+    path = _lib.RECORDS / f"{_lib.format_stem(rid, slug)}.md"
+    if path.exists():
+        sys.exit(f"ERROR: file already exists: {path}")
+    _lib.RECORDS.mkdir(parents=True, exist_ok=True)
+    _lib.atomic_write(path, _lib.dump_md(meta, f"\n# {args.title}\n\n{body}\n"))
 
     import reindex  # noqa: E402  (same dir, path set above)
-    reindex.build_index_for(args.type)
+    reindex.build()
 
-    print(out_path)
+    print(path)
 
 
 if __name__ == "__main__":

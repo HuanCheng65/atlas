@@ -39,13 +39,13 @@ After the questions, write the complete PROJECT.md to project root. Show it to u
 
 ---
 
-## Round B — Decisions D-NNN (15-30 min)
+## Round B — Decisions (15-30 min)
 
 Goal: extract 3-10 currently-active architectural decisions. Quality over quantity.
 
 ### Approach
 
-Go through scan output. For each strong signal, propose ONE D-NNN:
+Go through scan output. For each strong signal, propose ONE decision:
 
 - Directory choice diverging from convention → likely a D
 - Library / framework choice mentioned in README → likely a D
@@ -55,7 +55,7 @@ Go through scan output. For each strong signal, propose ONE D-NNN:
 
 Phrasing template for each candidate:
 
-> "Looking at <evidence>, I see you chose <X> over <Y>. My guess: this was deliberate, because of <Z>. Record this as D-NNN?"
+> "Looking at <evidence>, I see you chose <X> over <Y>. My guess: this was deliberate, because of <Z>. Record this?"
 
 If yes: draft frontmatter + body with concrete `source` field. User reviews and edits.
 
@@ -64,26 +64,20 @@ If yes: draft frontmatter + body with concrete `source` field. User reviews and 
 For every confirmed D, also propose its `triage` value (test: *does violating it produce visible resistance?*):
 
 - Embodied in code / repo structure (visible resistance) → `archival`
-- A standing behavioral rule with no resistance when violated → `promoted`: draft a one-line entry for PROJECT.md's **Working rules** section ending with the `(D-NNN)` pointer
+- A standing rule that nothing mechanically enforces → also draft a one-line entry for PROJECT.md's **Working rules** section, ending with a `([[NNN-slug]])` link to the record
 
 Write the confirmed Working rules lines into PROJECT.md during this round (the section exists from Round A's template). `validate.py` in Phase 3 enforces the promoted⟺pointer pairing, so unpaired states fail loudly.
 
 ### Round B hard rules
 
-- Every D-NNN MUST have a `source` field that is one of:
-  - git commit hash
-  - file path (with optional `:line-range`)
-  - README section header
-  - `user-statement-during-bootstrap-YYYY-MM-DD`
-- Cap: **10 D-NNN max**. Overflow → `bootstrap-extras.md`.
+- Cap: **10 decisions max**. Overflow → `bootstrap-extras.md`.
 - DO NOT propose D you can't tie to evidence. "I think there's probably also..." is the slop signal — STOP.
 - DO NOT migrate task-level plans / specs wholesale. Read the plan, extract the *architectural choice underneath*, propose THAT.
 - DO NOT create supersedes chains for past decisions. Record current state only.
-- Add `source: bootstrap` to every D-NNN frontmatter (alongside the regular `source-journal: null`)
 
 ---
 
-## Round C — Open Questions Q-NNN (5-10 min)
+## Round C — Open Questions (5-10 min)
 
 Goal: capture 2-5 currently-open questions worth tracking.
 
@@ -97,24 +91,24 @@ Goal: capture 2-5 currently-open questions worth tracking.
 
 - Show the user the top 5-10 TODOs from scan
 - For each: "Real open question, or stale marker?"
-- Real → draft Q-NNN with `source: bootstrap`
+- Real → draft a question record
 - Stale → ignore (DO NOT clean up the TODO marker; that's outside scope)
 - Then open-ended: "What else is bugging you?" — capture 1-2 from user's memory
 
 ### Round C hard rules
 
-- Cap: **5 Q-NNN max**
-- DO NOT create Q-NNN that have an obvious known answer
-- DO NOT create Q-NNN that duplicate a D-NNN
+- Cap: **5 questions max**
+- DO NOT create a question that has an obvious known answer
+- DO NOT create a question that duplicates a decision
 
 ---
 
-## Round D — Experiments E-NNN (10-20 min, RESEARCH PROJECTS ONLY)
+## Round D — Experiments (10-20 min, RESEARCH PROJECTS ONLY)
 
 Skip entirely if:
 - scan shows no `bench/` or `experiments/` directory
 - user says this is a dev project, not research
-- user explicitly says "no E-NNN"
+- user explicitly says not to record experiments
 
 ### Sources
 
@@ -127,12 +121,12 @@ Skip entirely if:
 ### Approach
 
 - List candidate experiments from scan
-- For each: "Record as E-NNN? It'll have hypothesis + setup + result + conclusion."
+- For each: "Record this? It gets a hypothesis, setup, result and conclusion."
 - Backfilled E may have weaker `hypothesis` than newly-created ones. Mark as `hypothesis: <backfilled — approximate>`.
 
 ### Round D hard rules
 
-- Cap: **10 E-NNN max**
+- Cap: **10 experiments max**
 - Only record experiments user will plausibly cite later. One-off exploratory runs are not worth it.
 - `result` field MUST link to the actual artifact (CSV path, log file) — don't paraphrase inline.
 
@@ -144,9 +138,9 @@ After all rounds, before declaring bootstrap complete:
 
 - [ ] PROJECT.md written to project root
 - [ ] `docs/atlas/ROADMAP.md` populated (or left as template if user has no current milestone)
-- [ ] Each D-NNN created via `atlas-entity` new.py, fields filled, `source: bootstrap` in frontmatter
-- [ ] Each Q-NNN created similarly
-- [ ] Each E-NNN created similarly
+- [ ] Each decision created via one `new.py` call, body on stdin
+- [ ] Each question created similarly
+- [ ] Each experiment created similarly
 - [ ] `bootstrap-extras.md` written if any overflow / weak candidates were skipped
 - [ ] `atlas-entity` reindex.py run on all entity dirs
 - [ ] `atlas-entity` validate.py returns OK

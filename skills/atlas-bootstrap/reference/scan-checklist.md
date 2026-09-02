@@ -24,9 +24,9 @@ After running scan.py and ingesting the YAML report, read these:
 
 4. **Existing CLAUDE.md / AGENTS.md / GEMINI.md if present** — signals the user has previously written rules for AI agents. Read what they wrote, plan to merge or replace.
 
-5. **`docs/adr/` directory entries if present** — these ARE decisions in ADR format and likely worth carrying over as D-NNN with minimal change.
+5. **`docs/adr/` directory entries if present** — these ARE decisions in ADR format and likely worth carrying over with minimal change.
 
-6. **A handful of plan / spec files from prior frameworks** — *skim* not deep-read. They reveal what the user has been working on. Most will NOT become D-NNN (they're task-level), but a few may surface architectural choices worth recording.
+6. **A handful of plan / spec files from prior frameworks** — *skim* not deep-read. They reveal what the user has been working on. Most will NOT become records (they're task-level), but a few may surface architectural choices worth recording.
 
 ## What NOT to read
 
@@ -41,7 +41,7 @@ You are ready for the interview when you can articulate, without re-reading:
 
 - The project in one sentence
 - 3-5 main themes of recent work (from commits)
-- 2-3 candidate D-NNN you suspect (with evidence from scan + reads)
+- 2-3 candidate decisions you suspect (with evidence from scan + reads)
 - Any obvious open questions or stale TODOs worth surfacing
 
 If any of these is fuzzy, read more before starting the interview. Wasted Phase 1 minutes are saved Phase 2 minutes ×3.

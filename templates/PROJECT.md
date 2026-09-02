@@ -5,10 +5,10 @@ This file is the project's constitution: background, long-term goals,
 hard constraints, and shared vocabulary. Read by agents at session start
 (via CLAUDE.md). Keep it stable — short-term plans go in docs/atlas/ROADMAP.md.
 
-Authoring tip — orient extracts this file as a session-start summary, so write
+Authoring tip — the session-start hook extracts this file, so write
 for extraction: lead each prose section with a self-contained first sentence
-(orient shows it as the headline), and keep Non-goals / Hard constraints /
-Working rules as short bullet lists (orient inlines those in full — they're
+(it becomes the headline), and keep Non-goals / Hard constraints /
+Working rules as short bullet lists (those are inlined in full — they're
 the guardrails). Keep "Current stage" to a single lifecycle word; the live
 milestone lives in ROADMAP.md, so don't restate it here or it goes stale.
 -->
@@ -33,10 +33,11 @@ milestone lives in ROADMAP.md, so don't restate it here or it goes stale.
 
 ## Working rules
 
-<!-- The constitution: standing rules currently in force, promoted from
-     decisions. One line per rule, ending with its (D-NNN) pointer back to
-     the full record — validate.py enforces the pairing both ways.
-     Starts empty; rules arrive as decisions get triaged as `promoted`.
+<!-- Rules in force that no mechanism enforces. A rule belongs here exactly
+     when nothing stops the agent from violating it: if a script, hook or
+     validator can catch it, write the check instead. One line per rule,
+     ending with a link to the record that justifies it. Authored by hand —
+     nothing is promoted here automatically. Starts empty.
      Keep it curated and bounded — line count here is a budget, not a log. -->
 
 ## Glossary

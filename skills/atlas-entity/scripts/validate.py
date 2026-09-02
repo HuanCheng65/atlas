@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Validate atlas entities: orphan refs, bidirectional consistency, frontmatter,
-the PROJECT.md constitution pairing (triage: promoted ⟺ a `(D-NNN)` pointer
-in PROJECT.md; every pointer resolves to an existing, active decision), and
-the frontmatter/body split (E content fields are one-line machine summaries,
-capped in length; bodies own the full prose and may not point at frontmatter).
+"""Validate the atlas record store.
+
+Checks identity (filename agrees with frontmatter, ids unique), schema
+(required fields present, deleted fields absent, type legal, title within the
+index-line budget), the frontmatter/body split for experiments, and the link
+graph (every wikilink resolves, every typed edge uses a known verb and points
+backwards).
+
+The direction rule is the mechanical form of "a published record is never
+edited": a record may only reference records that already existed when it was
+written. Memory records are the stated exception — they hold the constraints
+currently in force, are rewritten in place, and git keeps their history.
 
 Usage:
     validate.py
@@ -16,36 +23,34 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import _lib  # noqa: E402
+import links  # noqa: E402
 
-ALL_TYPES = ["D", "E", "Q"]
-
-VALID_STATUS = {
-    "D": {"planned", "active", "superseded", "rejected"},
-    "E": {"planned", "running", "completed", "abandoned"},
-    "Q": {"open", "answered", "wontfix", "merged-into-D"},
-}
-
-VALID_TRIAGE = {"pending", "promoted", "archival"}
-
-# A constitution pointer is `(D-NNN)` in PROJECT.md (any section — Hard
-# constraints lines carry pointers too, not just Working rules).
-POINTER_RE = re.compile(r"\((D-\d{3})\)")
-
-REQUIRED_BASE = ["id", "title", "date", "status", "tags", "related", "source-journal"]
+REQUIRED_BASE = ["id", "title", "date", "type", "tags"]
 REQUIRED_BY_TYPE = {
-    "D": ["supersedes", "superseded-by", "affects", "triage"],
-    "E": ["hypothesis", "config", "result", "artifacts", "conclusion"],
-    "Q": ["severity", "answered-by"],
+    "experiment": ["hypothesis", "config", "result", "artifacts", "conclusion"],
 }
 
-# E content fields are machine summaries scanned without loading the body;
-# the body sections own the full prose. The cap keeps them one-liners.
+# Fields the old schema stored and the link graph now derives. They are
+# rejected by name so a half-finished migration fails loudly instead of
+# leaving a field nothing reads.
+DERIVED_FIELDS = [
+    "status", "related", "supersedes", "superseded-by", "refuted-by",
+    "answered-by", "triage", "affects", "source-journal", "severity",
+]
+
+# An index line has to stay scannable, and a title that will not fit is
+# usually two findings joined by a semicolon.
+MAX_TITLE_WIDTH = 90
+
+# Experiment frontmatter fields are machine summaries scanned without loading
+# the body; the body sections own the full prose.
 E_SUMMARY_FIELDS = ["hypothesis", "config", "result", "conclusion"]
 MAX_SUMMARY_LEN = 300
 
-# Bodies are the canonical prose — a section that says "见 frontmatter" /
-# "see frontmatter" instead of its content is a hole in the record.
+# A section that says "见 frontmatter" instead of its content is a hole.
 FRONTMATTER_POINTER_RE = re.compile(r"见\s*frontmatter|see\s+frontmatter", re.IGNORECASE)
+
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def string_leaves(value):
@@ -59,135 +64,118 @@ def string_leaves(value):
             yield from string_leaves(v)
 
 
-def load_all():
-    entities = {}
-    bodies = {}
-    for t in ALL_TYPES:
-        d = _lib.ATLAS / _lib.TYPE_DIR[t]
-        if not d.exists():
+def collect_duplicate_ids():
+    """load_all() keys by id, so a second file claiming a number would be
+    silently dropped. Catch it from the filenames instead."""
+    seen = {}
+    for path in _lib.record_paths():
+        try:
+            rid, _ = _lib.split_stem(path.stem)
+        except ValueError:
             continue
-        for p in d.glob(f"{t}-*.md"):
-            meta, body = _lib.parse_md(p.read_text(encoding="utf-8"))
-            eid = meta.get("id") or p.stem.rsplit("-", 1)[0]
-            entities[eid] = (p, meta)
-            bodies[eid] = body
-    return entities, bodies
+        seen.setdefault(rid, []).append(path.name)
+    return {rid: names for rid, names in seen.items() if len(names) > 1}
 
 
 def main():
-    entities, bodies = load_all()
     errors = []
 
     def err(msg):
         errors.append(msg)
 
-    # required fields + status legality
-    for eid, (path, meta) in entities.items():
-        t = eid.split("-")[0]
-        for field in REQUIRED_BASE + REQUIRED_BY_TYPE.get(t, []):
-            if field not in meta:
-                err(f"{eid}: missing required field `{field}` ({path.name})")
-        status = meta.get("status")
-        if status is not None and status not in VALID_STATUS.get(t, set()):
-            err(f"{eid}: illegal status `{status}` for type {t}")
-        if t == "D":
-            triage = meta.get("triage")
-            if triage is not None and triage not in VALID_TRIAGE:
-                err(f"{eid}: illegal triage `{triage}` (must be one of {sorted(VALID_TRIAGE)})")
-        if t == "E":
+    for path in _lib.record_paths():
+        try:
+            _lib.split_stem(path.stem)
+        except ValueError as exc:
+            err(str(exc))
+
+    for rid, names in sorted(collect_duplicate_ids().items()):
+        err(f"{rid:03d}: {len(names)} files claim this number: {', '.join(sorted(names))}")
+
+    records = _lib.load_all()
+
+    for rid, rec in sorted(records.items()):
+        name = rec.path.name
+
+        if rec.meta.get("id") != rid:
+            err(f"{name}: frontmatter id is {rec.meta.get('id')!r}, filename says {rid}")
+        if rec.meta.get("slug") not in (None, rec.slug):
+            err(f"{name}: frontmatter slug is {rec.meta.get('slug')!r}, filename says {rec.slug!r}")
+
+        for field in REQUIRED_BASE + REQUIRED_BY_TYPE.get(rec.type, []):
+            if field not in rec.meta:
+                err(f"{name}: missing required field `{field}`")
+
+        for field in DERIVED_FIELDS:
+            if field in rec.meta:
+                err(f"{name}: field `{field}` is derived from the link graph — "
+                    f"remove it from frontmatter")
+
+        if rec.type not in _lib.TYPES:
+            err(f"{name}: illegal type {rec.type!r} (one of {', '.join(_lib.TYPES)})")
+
+        date = rec.meta.get("date")
+        if date is not None and not (isinstance(date, str) and DATE_RE.match(date)):
+            err(f"{name}: date must be YYYY-MM-DD, got {date!r}")
+
+        tags = rec.meta.get("tags")
+        if tags is not None and not isinstance(tags, list):
+            err(f"{name}: tags must be a list, got {type(tags).__name__}")
+
+        title = rec.title
+        if isinstance(title, str):
+            width = _lib.display_width(title)
+            if width > MAX_TITLE_WIDTH:
+                err(f"{name}: title is {width} columns wide, over the {MAX_TITLE_WIDTH} "
+                    f"budget — a title that will not fit an index line is usually "
+                    f"two records")
+        elif title is not None:
+            err(f"{name}: title must be a string, got {type(title).__name__}")
+
+        if rec.type == "experiment":
             for field in E_SUMMARY_FIELDS:
-                for s in string_leaves(meta.get(field)):
+                for s in string_leaves(rec.meta.get(field)):
                     if len(s) > MAX_SUMMARY_LEN:
-                        err(f"{eid}.{field}: {len(s)}-char value exceeds {MAX_SUMMARY_LEN} — "
+                        err(f"{name}.{field}: {len(s)}-char value exceeds {MAX_SUMMARY_LEN} — "
                             f"frontmatter fields are one-line machine summaries; "
                             f"full prose belongs in the body")
                         break
 
-    # bodies own the prose — no "见 frontmatter" placeholders
-    for eid, body in bodies.items():
-        if FRONTMATTER_POINTER_RE.search(body):
-            err(f"{eid}: body points at frontmatter instead of stating its content — "
+        if FRONTMATTER_POINTER_RE.search(rec.body):
+            err(f"{name}: body points at frontmatter instead of stating its content — "
                 f"the body is the canonical prose; write it out")
 
-    # reference checks
-    def check_refs(eid, meta, key):
-        refs = meta.get(key) or []
-        if isinstance(refs, str):
-            refs = [refs]
-        for r in refs:
-            if r is None:
-                continue
-            if r.endswith(".md") or "/" in r:
-                jpath = _lib.ATLAS / "journal" / r if not r.startswith("journal/") else _lib.ATLAS / r
-                if not jpath.exists():
-                    err(f"{eid}.{key}: journal not found: {r}")
-                continue
-            if r not in entities:
-                err(f"{eid}.{key}: references missing entity `{r}`")
+    mentions, edges, dangling = links.graph(records)
 
-    for eid, (_, meta) in entities.items():
-        t = eid.split("-")[0]
-        check_refs(eid, meta, "related")
-        if meta.get("source-journal"):
-            check_refs(eid, meta, "source-journal")
-        if t == "D":
-            check_refs(eid, meta, "supersedes")
-            check_refs(eid, meta, "superseded-by")
-        if t == "Q" and meta.get("answered-by"):
-            check_refs(eid, meta, "answered-by")
+    for source, stem, reason in dangling:
+        err(f"{records[source].path.name}: link [[{stem}]] does not resolve — {reason}")
 
-    # bidirectional supersedes consistency
-    for eid, (_, meta) in entities.items():
-        if not eid.startswith("D-"):
+    for source, targets in mentions.items():
+        if source in targets:
+            err(f"{records[source].path.name}: links to itself")
+        if records[source].type == "memory":
             continue
-        for target in meta.get("supersedes") or []:
-            tgt = entities.get(target)
-            if tgt and eid not in (tgt[1].get("superseded-by") or []):
-                err(f"{eid} supersedes {target} but {target}.superseded-by omits {eid}")
-        for target in meta.get("superseded-by") or []:
-            tgt = entities.get(target)
-            if tgt and eid not in (tgt[1].get("supersedes") or []):
-                err(f"{eid} superseded-by {target} but {target}.supersedes omits {eid}")
+        for target in targets:
+            if target > source:
+                err(f"{records[source].path.name}: references {target:03d}, which did not "
+                    f"exist when this record was written — links point backwards, and a "
+                    f"published record is not edited to cite a later one")
 
-    # status final-state invariants
-    for eid, (_, meta) in entities.items():
-        if meta.get("status") == "superseded" and not (meta.get("superseded-by") or []):
-            err(f"{eid}: status=superseded but superseded-by is empty")
-        if meta.get("status") == "merged-into-D":
-            ab = meta.get("answered-by")
-            if not (isinstance(ab, str) and ab.startswith("D-")):
-                err(f"{eid}: status=merged-into-D but answered-by is not a D-id ({ab!r})")
-
-    # constitution pairing: triage: promoted ⟺ (D-NNN) pointer in PROJECT.md
-    project_path = Path("PROJECT.md")
-    project_md = project_path.read_text(encoding="utf-8") if project_path.exists() else None
-    pointers = set(POINTER_RE.findall(project_md)) if project_md else set()
-
-    promoted = {
-        eid for eid, (_, meta) in entities.items()
-        if eid.startswith("D-") and meta.get("triage") == "promoted"
-    }
-    if promoted and project_md is None:
-        err(f"decisions marked promoted ({', '.join(sorted(promoted))}) but PROJECT.md not found")
-    for eid in sorted(promoted - pointers):
-        err(f"{eid}: triage=promoted but PROJECT.md has no ({eid}) pointer")
-    for eid in sorted(pointers - promoted):
-        if eid not in entities:
-            err(f"PROJECT.md points at ({eid}) but no such decision exists")
-        else:
-            err(f"PROJECT.md points at ({eid}) but its triage is "
-                f"{entities[eid][1].get('triage')!r}, not promoted")
-    for eid in sorted(pointers & promoted):
-        if entities[eid][1].get("status") != "active":
-            err(f"PROJECT.md points at ({eid}) but its status is "
-                f"{entities[eid][1].get('status')!r}, not active — update the constitution line")
+    for source, edge_list in edges.items():
+        for verb, target in edge_list:
+            if verb not in links.VERBS:
+                err(f"{records[source].path.name}: unknown edge `{verb}::` "
+                    f"(one of {', '.join(links.VERBS)})")
+            elif target > source:
+                err(f"{records[source].path.name}: `{verb}::` points at {target:03d}, "
+                    f"a later record — a typed edge is declared on the newer record")
 
     if errors:
         print(f"\n{len(errors)} error(s):\n")
         for e in errors:
             print(f"  - {e}")
         sys.exit(1)
-    print(f"OK ({len(entities)} entities checked)")
+    print(f"OK ({len(records)} records checked)")
 
 
 if __name__ == "__main__":

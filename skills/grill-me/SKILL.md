@@ -1,179 +1,111 @@
 ---
 name: grill-me
-description: Use this skill BEFORE starting non-trivial work. Interview the user one question at a time, walking down the decision tree, until shared understanding is reached; propose your recommended answer with every question so the user reviews instead of answering from blank. Use WHENEVER the user describes a feature, task, design, refactor, or experiment — seeming clarity is not a skip reason; underspecified edges are. SKIP only when the task is trivial (one-line fix, formatting, copy-paste edit), when the user hands over a complete written plan for execution, when the user explicitly says "skip planning" / "just do it", or when the project is being onboarded (atlas-bootstrap has its own interview). Produces an active journal entry under docs/atlas/journal/ containing the Plan with mandatory Verification, ready for atlas-log to append the Work log as work progresses.
+description: Use this skill BEFORE starting non-trivial work. Interview the user one question at a time, walking down the decision tree, until shared understanding is reached; propose your recommended answer with every question so the user reviews instead of answering from blank. Use WHENEVER the user describes a feature, task, design, refactor, or experiment — seeming clarity is not a skip reason; underspecified edges are. SKIP only when the task is trivial (one-line fix, formatting, copy-paste edit), when the user hands over a complete written plan for execution, when the user explicitly says "skip planning" / "just do it", or when the project is being onboarded (atlas-bootstrap has its own interview). Writes the agreed plan, with mandatory Verification, to docs/atlas/plan.md.
 ---
 
 # Grill Me
 
-You interview the user about a plan or design until you reach shared understanding. The output is a Plan that the user has effectively reviewed by answering questions, instead of having to write from blank.
+You interview the user about a plan or design until you reach shared
+understanding. The output is a plan the user has effectively reviewed by
+answering questions, instead of having to write from blank.
 
 ## Override: this skill IS the interview
 
-If the session has a global instruction like "work without stopping for clarifying questions" / "no stops for clarifying questions" / "make the reasonable call and continue" — **that instruction does NOT apply inside this skill.**
-
-The interview questions are the deliverable, not a delay. Inferring answers and writing a one-shot Plan defeats the whole point. The user invoked this skill specifically because they want to be grilled. If they wanted you to guess, they would not have run `/grill-me`.
-
-Follow the hard rules below: one question at a time, walk down the tree, propose your guess with every question, wait for the user's reply.
+If the session carries a global instruction like "work without stopping for
+clarifying questions" — **that does not apply inside this skill.** The questions
+are the deliverable, not a delay. Inferring the answers and writing a one-shot
+plan defeats the point; the user invoked this skill because they want to be
+grilled.
 
 ## Hard rules
 
-1. **One question at a time.** Batching is forbidden. The user cannot answer 5 questions at once; their answers degrade.
-2. **Walk down the tree, not across.** If decision A determines what to ask about B, resolve A first. Do not jump between unrelated branches.
-3. **Provide your recommended answer with every question.** Phrase it: "My guess: X. Is that right?" — never "What do you think?".
-4. **Explore the codebase before asking.** If reading a file, running `git log`, or `ls`-ing a directory would answer the question, do that first and skip the question.
-5. **Stop when shared understanding is reached, not when every detail is settled.** Most plans need 8–15 resolved questions. If you've asked more than 20, you're over-grilling — wrap up.
-6. **Cross-check answers against what's already decided.** Active decisions (D-NNN) and the PROJECT.md glossary are already in your context — orient loaded them at session start. When an answer touches one, act on it before walking further down the tree. See "Grill against what's already decided" below.
+1. **One question at a time.** Batching is forbidden — answers degrade.
+2. **Walk down the tree, not across.** If A determines what to ask about B,
+   resolve A first.
+3. **Propose your answer with every question.** "My guess: X. Is that right?",
+   never "What do you think?".
+4. **Explore before asking.** If reading a file, running `git log`, or listing a
+   directory would answer it, do that and skip the question.
+5. **Stop at shared understanding, not at exhaustive detail.** Most plans need
+   8–15 resolved questions. Past 20 you are over-grilling.
+6. **Grill against what the project has already settled.** The session-start
+   state is in your context — the guardrails, the constraints in force, the open
+   questions. Check each answer against them as it lands.
 
-## Grill against what's already decided
+## Grill against what is already settled
 
-Plain grilling interrogates a plan in isolation. Because orient has already loaded the active decisions and the glossary, you can interrogate it against what the project has *already settled*. This is the one move that separates a good grill from a shallow one — and it runs *per answer*, as new directions surface, not once up front (that up-front pass is orient's job at session start; the two are complementary, don't consolidate them).
+Plain grilling interrogates a plan in isolation. Because the project's state is
+already loaded, you can interrogate it against what has already been decided.
+This runs per answer, as new directions surface — not as one pass up front.
 
-Two moments to watch for during the interview:
-
-- **An answer conflicts with an active decision.** Surface it immediately, in plain content language — describe *what was decided and why*, never the `D-NNN` ID (see `using-atlas`'s plain-language rule). Example: "That cuts against something we settled earlier — skill activation is event-driven, not session-phase-driven, because phase-driven triggers didn't fire reliably. Are we revisiting that, or does the plan need to fit it?" If the user genuinely wants to overturn the prior decision, **do not edit the decision yourself** — finish the grill, then route the supersede through `atlas-entity`. grill-me writes plans, not decision records.
-
-- **A term gets coined or sharpened.** When the interview lands on a name for a recurring concept, or pins down a fuzzy word, fold it into the question like any other guess: "This pattern needs a name — my guess: 'shadow-replay' = re-running captured prod traffic against a candidate build. Add that to the glossary?" On confirmation, edit the **Glossary section of PROJECT.md** directly (it's plain markdown — keep it a glossary, definitions only, no specs or notes). Don't batch these to the end; capture each term as it resolves.
+- **An answer contradicts a constraint in force.** Surface it immediately, in
+  plain language: describe *what was settled and why*, never the record number.
+  "That cuts against something we settled — skills activate on events, not
+  session phases, because phase triggers did not fire reliably. Are we revisiting
+  that, or does the plan need to fit it?" If the user does want to overturn it,
+  finish the grill first; the supersession is a record written during the work,
+  not an edit made mid-interview.
+- **A term gets coined or sharpened.** Fold it into a question like any other
+  guess: "This needs a name — my guess: 'shadow-replay' = replaying captured
+  production traffic against a candidate build. Add it to the glossary?" On
+  confirmation, edit the Glossary section of PROJECT.md directly — definitions
+  only, no specifications.
 
 ## Example
 
-User: "Help me add rate limiting to the API."
+> Q1: Looking at `src/api/`, I see Express routes and no Redis in
+> `package.json` — single-server setup. My guess: per-IP in-memory rate limiting
+> via `express-rate-limit`. Right?
 
-Agent:
-> Q1: Looking at `src/api/`, I see Express routes and no Redis in `package.json` — single-server setup. My guess: you want per-IP in-memory rate limiting via `express-rate-limit`. Right?
+> Q2: Which routes? My guess: only `/api/v1/auth/*`, the usual abuse vector.
+> Others untouched. Right?
 
-User: yes
-
-Agent:
-> Q2: Which routes need it? My guess: only `/api/v1/auth/*` since those are the typical abuse vectors. Others untouched. Right?
-
-User: also `/upload/*`
-
-Agent:
-> Q3: Limits? My guess: auth = 5 req/min per IP, upload = 20 req/min per IP. Reasonable?
-
-...
-
-(after ~10 questions agent writes the Plan and stops grilling)
+...and after roughly ten questions, write the plan and stop grilling.
 
 ## Output
 
-**If `using-atlas` already bootstrapped an active entry for this work**, do not create a second entry. Extend the existing one by writing the Plan sections (Context / Decisions resolved / Steps / Verification / Keepers proposed / Throwaways proposed) into it. The entry should already have a `## Context` paragraph (you may keep and extend it, or replace if the grill produced richer context) and an empty `## Work log` section (leave it empty — atlas-log fills it).
+Write the plan to `docs/atlas/plan.md`, overwriting whatever was there. One
+plan at a time: it is the working state of the task in hand, not a record. It is
+not numbered, not indexed, and not validated — plans describe intent, and the
+store holds what happened.
 
-Update frontmatter `tags` and `related` if grill-me surfaces relevant values. The entry's slug stays whatever using-atlas picked, unless strongly mismatched with the actual planned work (then rename the file).
-
-If no active entry exists when grill-me runs (using-atlas was skipped or deferred), create one via `atlas-log`'s `open.py` — **never by writing the file directly**. The script owns the date prefix, the frontmatter scaffolding, and all timestamps; the scripts exist because agent-fabricated timestamps caused real bugs (see `atlas-log`). This is the journal entry for the entire work unit — you write the Plan sections now; `atlas-log` will append Work log entries to the same file as work progresses; eventually `atlas-log` will close the entry with the verification outcome.
-
-```bash
-python3 ~/.claude/skills/atlas-log/scripts/open.py \
-    --slug <kebab-case-slug> \
-    --tags <comma,separated,tags from interview topics> \
-    [--related slug-a,D-007] <<'EOF'
-<Context paragraph distilled from the interview>
-EOF
-```
-
-The project name is derived from PROJECT.md's H1; pass `--project` only to override.
-
-`open.py` refuses to overwrite an existing file — if today's slug collides, re-run with `-2` / `-3` appended to the slug. It prints the created path and reindexes automatically.
-
-Then write the remaining Plan sections into the created file with Edit, between `## Context` and `## Work log`. Body edits are fine; frontmatter and timestamps stay script-owned.
-
-Body sections in this exact order. **All Plan sections are required.** If any cannot be filled, grilling is not done — loop back.
+Sections in this order. **All are required.** If one cannot be filled, the
+interview is not done — loop back.
 
 ### Context
 One paragraph. What the user is doing. Why now.
 
 ### Decisions resolved
-Bullet list. Each bullet = one decision from the interview and the answer.
+One bullet per interview question and its answer.
 
 ### Steps
-Concrete actions in execution order. Each step fits in one mental unit (a single function written, a single test added, a single config changed).
+Concrete actions in execution order, each one mental unit — a function written,
+a test added, a config changed.
 
 ### Verification
-**How will this task be checked complete?** Be specific. Pick the form that fits:
-- Unit / integration tests (with which assertions?)
-- Reference-implementation comparison (which reference? what tolerance?)
-- Eval set (which examples? what success criterion?)
-- Manual checklist (which items? who runs through?)
-- Profiling / measurement (which metric? what threshold?)
+**How will this be checked complete?** Pick the form that fits: tests with named
+assertions, a reference implementation and a tolerance, an eval set and a success
+criterion, a manual checklist, a metric and a threshold.
 
-Bad: "tests pass"
-Good: "`rtol < 1e-3` against FlexAttention dense impl on 5 random shapes drawn from Kuairand seq-len distribution"
+Bad: "tests pass". Good: "`rtol < 1e-3` against the dense reference on five
+shapes drawn from the production sequence-length distribution".
 
-If the user resists specifics, push: "Even loosely — what would you check to know it's working?"
+If the user resists specifics, push: "Even loosely — what would you check to
+know it is working?"
 
-### Keepers (proposed)
-Which verification artifacts will likely become long-term regression assets? List them. These survive after merge.
+### Keepers / Throwaways
+Which verification artifacts become long-term regression assets, and which are
+development-only and get deleted. Both proposed at this stage.
 
-### Throwaways (proposed)
-Which artifacts are development-only and will be deleted after merge? (Scratch logs, print statements, hacky exploratory benchmarks, one-off comparison scripts.)
-
-Keepers and Throwaways at this stage are **proposed**. They get **finalized** by `atlas-log` when work actually completes — what was a Throwaway may turn out worth keeping, and vice versa.
-
-### Work log
-
-After all Plan sections, leave a **`## Work log` header with no content underneath**. This is the canonical anchor that `atlas-log` will append timestamped subsections under. Skipping this header will cause atlas-log to fail finding the insertion point.
-
-Complete file structure at the moment of handoff to atlas-log:
-
-```markdown
----
-[frontmatter — generated by open.py, do not hand-write]
----
-
-# <Title derived from slug>
-
-## Context
-<one paragraph>
-
-## Decisions resolved
-- ...
-
-## Steps
-1. ...
-
-## Verification
-<specifics>
-
-## Keepers (proposed)
-- ...
-
-## Throwaways (proposed)
-- ...
-
-## Work log
-<!-- atlas-log appends timestamped subsections here as work progresses -->
-```
-
-No manual reindex is needed — `open.py` already reindexed when the entry was created, and Plan-section body edits don't affect the index (it derives from frontmatter only). Presenting the Plan **is** a speak-moment: the user must review and sign off, so give them the file path and walk through the substance. Keep the framing on the plan's content, not the framework. See `using-atlas`'s "Speak in plain project language" for the principle.
+Presenting the plan **is** a speak-moment: give the user the path and walk
+through the substance. Keep the framing on the plan's content.
 
 ## Anti-patterns
 
-- **DO NOT** skip grill-me because "this looks clear". You will be wrong about edges. The cost of being wrong compounds during implementation.
-- **DO NOT** propose code in the Plan. Code is post-signoff.
-- **DO NOT** accept "I'll figure it out as I go" as Verification. Even a loose answer is better than no answer.
-- **DO NOT** let Verification / Keepers / Throwaways be empty just to ship the Plan. Empty means the interview is not done. Loop back.
-- **DO NOT** keep grilling past shared understanding. Recognize when the user is repeating themselves or getting tired — that's the signal to write the Plan.
-- **DO NOT** batch questions ("3 questions: A, B, C?"). One. At. A. Time.
-
-## When NOT to use grill-me
-
-- User has already given you a complete written plan and asks for execution → skip to execution.
-- Task is trivial (one-line fix, formatting, copy-paste edit) → just do it.
-- User explicitly says "skip planning" or "just do X" → respect that, but consider asking if they want a one-line journal note via `atlas-log` afterward.
-- User is migrating an existing project to atlas → use `atlas-bootstrap` instead. That skill has its own interview tailored for extraction, not planning.
-
-## After grill-me
-
-The journal entry lives at `docs/atlas/journal/YYYY-MM-DD-<slug>.md` with `status: active`. The Plan section is filled; the Work log section is empty, awaiting `atlas-log`.
-
-During work, `atlas-log` automatically appends timestamped Work log subsections. When work completes, `atlas-log` closes this entry by filling a Close section and setting `status: closed` + `verification-result`. Keepers and Throwaways get finalized at close — they may differ from the "proposed" lists in the Plan, which is expected.
-
-Carry the entry's slug in your conversation memory through the rest of the session, so `atlas-log` knows which entry to update without re-asking.
-
-## Cross-references
-
-- When work completes, invoke `atlas-log` to write a completion entry that references the journal file and finalizes Keepers / Throwaways.
-- If during execution a long-term architectural choice gets made (something deserving D-NNN), invoke `atlas-entity` to record it. Do not bury it inside the Plan file.
-- If during execution a new unresolved question surfaces, invoke `atlas-entity` to record it as Q-NNN.
-- If grilling surfaces that the plan overturns an active decision, invoke `atlas-entity` to supersede it — grill-me surfaces the conflict but never edits the decision record directly.
+- **DO NOT** skip grill-me because the task "looks clear". You will be wrong
+  about the edges, and being wrong compounds during implementation.
+- **DO NOT** propose code in the plan. Code is post-signoff.
+- **DO NOT** accept "I'll figure it out as I go" as Verification.
+- **DO NOT** batch questions. One. At. A. Time.
+- **DO NOT** keep grilling past shared understanding. When the user repeats
+  themselves or tires, write the plan.

@@ -2,7 +2,7 @@
 
 Standing design document. Records the current state of the design and the
 rejected alternatives. For history of how we arrived here, see git log and
-the journal entries.
+the archived journal.
 
 ## Problem statement
 
@@ -37,29 +37,27 @@ Atlas composes the parts that work into a small, opinionated framework.
 2. **Plain text + git.** No SQLite, no vector DB. Markdown with YAML
    frontmatter is the only data format.
 3. **Append-only events, maintained views.** Journal entries are mutable
-   while active and frozen when closed. Entities (D / E / Q) are mutable
-   with explicit lifecycle. Indexes are derived views.
+   until committed and superseded rather than edited afterwards. Indexes
+   and standing are derived views, recomputed on read.
 4. **One domain, one skill.** Each cognitive domain gets one skill;
    deterministic operations live in scripts inside that skill.
-5. **Scripts for the deterministic, prompts for the judgment.** ID
-   assignment, frontmatter manipulation, validation: scripts. Whether
-   something deserves to be a D-NNN, or whether a journal append is
-   warranted: agent reasoning.
-6. **Schema enforced, not implied.** Templates define required fields.
-   `validate.py` checks them.
+5. **Scripts for the deterministic, prompts for the judgment.** Number
+   assignment, frontmatter manipulation, link resolution, validation:
+   scripts. Whether something is worth a record at all: agent reasoning.
+6. **Schema enforced, not implied.** `validate.py` is the schema — there
+   are no templates to drift out of sync with it.
 7. **Verification declared, not TDD enforced.** Every task must declare
    how completion is checked, with kept vs discarded artifacts classified.
-8. **Event-driven, not phase-driven.** No "session start" or "session
-   end" moment. Skills activate on events: a task is described
-   (grill-me), work progresses (atlas-log), context is needed
-   (atlas-orient). The counting unit for setup re-injection is the
-   context window, not the session: rebuilt context (startup / clear /
-   compact) re-demands using-atlas; resume only refreshes state via
-   atlas-orient.
-9. **Multi-active by default.** Parallel work across windows / topics is
-   normal. Each agent instance carries "which entry am I working on" in
-   conversation memory; multiple active journal entries coexist without
-   coordination.
+8. **Event-driven, not phase-driven.** There is no observable "session
+   end", so nothing is scheduled for one. Records are written at events
+   that actually occur: a measurement completes, a constraint is hit, a
+   choice is settled, a commit is made. State loading is the one exception
+   and it is a hook, not a judgment — the counting unit is the context
+   window, so startup, clear and compact each reload.
+9. **No coordination between sessions.** Parallel work across windows is
+   normal and needs no shared state: records are append-mostly and
+   independently numbered, so two sessions writing at once conflict only
+   if they claim the same number, which git surfaces as a conflict.
 10. **Mechanisms over prose.** When an agent behavioral rule can be
     enforced or made unnecessary by a mechanism — a script default, a
     script refusal, a hook, a validator — atlas builds the mechanism;
@@ -69,32 +67,43 @@ Atlas composes the parts that work into a small, opinionated framework.
     plan review, binding ambiguity, conflict alerts). Atlas data changes
     ride the work unit's own commits — atlas-only commits exist only when
     atlas content is itself the work.
-12. **Archive vs constitution.** Decision records are an ADR-style event
-    log consulted on demand; the standing rules they establish promote as
-    one-liners (with `(D-NNN)` pointers) into PROJECT.md's Working rules,
-    which orient inlines every session. Triage state (`pending |
-    promoted | archival`) tracks the split; validate enforces the
-    pointer pairing both ways.
+12. **Archive vs constitution.** Decision records are an ADR-style log
+    consulted on demand. PROJECT.md's Working rules are a separate,
+    hand-authored artifact holding the rules in force that no mechanism
+    enforces — a rule belongs there exactly when nothing stops the agent
+    from violating it, and if a check can catch it, the check gets written
+    instead. Nothing is promoted automatically; a rule is a rewrite of a
+    decision for a different reader, not a status the decision earns.
+
+13. **A record's truth may not depend on a future edit.** This is the
+    principle the rest follows from. Stored status, reverse links and
+    "close the entry when done" all encode a promise that somebody will
+    come back, and in dogfooding nobody did: ten of eleven journal entries
+    were never closed, and a refuted experiment kept asserting its result
+    in every index for a month.
 
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
+│  Session-start hook (settings.json)                      │
+│  session_start.py — loads state straight into context    │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
 │  Skill layer (user-level: ~/.claude/skills/)             │
 │  ──────────────────────────────────────────────────      │
-│  grill-me           atlas-orient                         │
-│  atlas-bootstrap    atlas-log                            │
-│  atlas-entity       atlas-compact                        │
+│  using-atlas        grill-me                             │
+│  atlas-entity       atlas-compact       atlas-bootstrap  │
 └────────────────────────┬─────────────────────────────────┘
                          │ reads / writes
                          ▼
 ┌──────────────────────────────────────────────────────────┐
 │  Data layer (per-project: <project>/docs/atlas/)         │
 │  ──────────────────────────────────────────────────      │
-│  roadmap.md                topics/*.md                   │
-│  journal/*.md              decisions/D-NNN-*.md          │
-│    └── _index.md           experiments/E-NNN-*.md        │
-│  _templates/*.md           questions/Q-NNN-*.md          │
+│  ROADMAP.md                records/NNN-slug.md           │
+│  plan.md                     └── _index.md               │
+│  archive/                                                │
 └──────────────────────────────────────────────────────────┘
                          ▲
                          │ created / maintained by
@@ -114,53 +123,79 @@ a marker-delimited block) and creates PROJECT.md from template if missing.
 
 ## Data model
 
-### Entities (D / E / Q)
+### Records
 
-Three structured entity types share a base frontmatter (`id`, `title`,
-`date`, `status`, `tags`, `related`, `source-journal`) and per-type
-extensions. Status state machines differ per type (see
-`skills/atlas-entity/reference/lifecycle.md`).
+One file per record: `docs/atlas/records/NNN-slug.md`, on a single monotonic
+counter shared by every type. Numbers are never reused, so an old link keeps
+its meaning.
 
-- **D-NNN** — long-term decision; linked by `supersedes` / `superseded-by`;
-  carries `triage: pending | promoted | archival` (see principle 12)
-- **E-NNN** — experiment; `hypothesis` / `config` / `result` / `conclusion`
-- **Q-NNN** — open question; closed via `answered-by` (D-id, E-id, or journal)
+Frontmatter carries identity only — `id`, `title`, `date`, `type`, `tags` —
+plus, for experiments, five one-line machine summaries (`hypothesis`,
+`config`, `result`, `conclusion`, `artifacts`) capped at 300 characters. The
+body owns the prose.
 
-`_index.md` files are derived, human-only browse views, regenerated by
-`reindex.py`; their content is deterministic (no run-date dependence —
-recency windows are computed by orient at render time). Agent-facing
-reads parse frontmatter directly.
+Four types, with `type` an ordinary field rather than an ID prefix, because
+the type is a judgment made at the moment of least information and has to
+stay correctable without breaking every reference:
 
-### Journal
+- **memory** — a constraint in force. Its title is loaded into every session,
+  which makes the set a budget; it is rewritten in place, and git keeps the
+  history.
+- **experiment** — a measurement and what it showed.
+- **decision** — a choice and the alternative it beat, in ADR form: context,
+  decision, consequences.
+- **question** — something unresolved.
 
-A journal entry represents **one work unit** end to end: planning,
-execution, closure. File path: `docs/atlas/journal/YYYY-MM-DD-<slug>.md`.
-Body structure:
+### Relations and derived state
+
+Every relation lives in the body, in Obsidian syntax, written into the
+sentence that carries the reasoning:
 
 ```
-## Context             ← from grill-me
-## Decisions resolved
-## Steps
-## Verification
-## Keepers (proposed)
-## Throwaways (proposed)
-## Work log            ← appended by atlas-log during work
-## Close               ← filled by atlas-log at close, with user confirmation
+[[047-slug]]                 a reference; produces a backlink
+(refutes:: [[021-slug]])     a typed edge
 ```
 
-Frontmatter includes `status: active | closed`, `opened`, `closed`,
-`verification-result`. Active entries are mutable; closed entries are frozen.
+Verbs are `supersedes`, `refutes`, `answers`, and nothing else. A typed edge
+changes how the **target** renders, which is why it is declared on the newer
+record: the older one is never touched.
 
-Multiple active entries coexist (parallel work). Each agent instance carries
-"which entry am I working on" in conversation memory. `journal/_index.md`
-shows all actives.
+Nothing stores standing. Superseded, refuted and answered are recomputed from
+the incoming edges on every read. This is the point of the design — a record
+that depends on a future edit to stay true will eventually be false, because
+the edit is a thing somebody has to remember.
 
-### Topics
+Two mechanical consequences, both enforced by `validate.py`:
 
-Free-form `topics/<name>.md`. Long-form notes that emerge from journal
-patterns. Never bootstrapped — only created when several journal entries
-warrant distillation. `atlas-compact` writes them during its runs; the
-run's single commit is the review point.
+- **Links point backwards** (`target < source`). A record may only cite what
+  already existed. Memory records are exempt: they hold what is true now.
+- **Titles are capped** at 90 columns, CJK counted double. A title that will
+  not fit an index line is usually two records.
+
+### The publication boundary
+
+An uncommitted record is a draft and may be rewritten freely; a committed one
+is superseded rather than edited. Adding a typed edge to a committed record is
+the single permitted touch, since it changes nothing the record claims.
+
+This is what replaced the journal's "close" ritual. There is no observable
+moment when a session ends, so anything scheduled for one does not happen; a
+commit, by contrast, is an event that already exists in the workflow.
+
+### Archive
+
+`docs/atlas/archive/` holds superseded layouts verbatim — currently the
+pre-record journal. Frozen, still grep-able, never migrated. Bulk-converting
+old material into the live store would only refill the inbox the redesign
+emptied.
+
+### Plans
+
+`docs/atlas/plan.md` holds the plan for the work in hand, written by
+`grill-me` and overwritten per work unit. It is deliberately not a record: a
+plan describes intent, and the store holds what happened. Where intent, spec
+and implementation should live relative to each other is an open question,
+and this file is a placeholder, not an answer.
 
 ## Skill activation patterns
 
@@ -171,32 +206,29 @@ described in its SKILL.md. The typical activation timeline for a task:
 [new conversation on an atlas-enabled project]
        │
        ▼
-   atlas-orient              ← read state, identify active work
+   SessionStart hook         ← state is already in context; no skill involved
        │
        ▼
-   ┌─────────────────┐
-   │ New work?       │
-   └─────────────────┘
-       │
-   yes │             no
-       ▼             ▼
-   grill-me     atlas-log (append to existing active entry)
-       │             │
-       │             ▼
-       │     (work continues, atlas-log appends as events occur...)
-       │             │
-       ▼             ▼
-   atlas-log (append, append, append...)
+   using-atlas               ← the rules for writing records
        │
        ▼
-   atlas-log (close, with user confirmation)
+   grill-me (non-trivial work)  → docs/atlas/plan.md
+       │
+       ▼
+   work proceeds; records are written at the events that produce them:
+       a measurement completes        → experiment record
+       a constraint is hit            → memory record, or rewrite one
+       a choice is settled            → decision record
+       something unresolved surfaces  → question record
+       │
+       ▼
+   commit — the drafts become published; the diff is the review point
 
 
-[in parallel throughout:]
-   atlas-entity     ← create D / Q / E whenever work warrants
-   atlas-compact    ← on demand (orient hints at backlog): clear backlog,
-                      consolidate records; applies without per-item
-                      confirmation, lands as one revertable commit
+[on demand:]
+   atlas-entity     ← audit, rename, validate, migrate
+   atlas-compact    ← memory over budget, or a staleness sweep; applies
+                      without per-item confirmation, one revertable commit
 ```
 
 For new projects: `atlas-init` (one-time) → normal workflow above.
@@ -213,8 +245,7 @@ Every plan produced by `grill-me` must declare:
   long-term regression assets
 - **Throwaways (proposed)** — development-time scaffolds to delete after merge
 
-Keepers and Throwaways are **proposed** in the Plan section, **finalized**
-by `atlas-log` in the Close section. The lists may shift during work — what
+Both lists are proposed at planning time and settled at the commit — what
 seemed throwaway may turn out worth keeping, and vice versa.
 
 This addresses the observed failure of AI-written tests (surface-level
@@ -228,33 +259,41 @@ pick the form — the agent and user do, per task.
 
 - **SQLite for entities** — rejected. Loses plain-text + git diff +
   tool-portability.
-- **Vector DB for journal retrieval** — rejected. Maintenance overhead,
-  opacity, and ripgrep + frontmatter handles ~80% of queries at zero cost.
+- **Vector DB for retrieval** — rejected. Maintenance overhead, opacity,
+  and ripgrep over prose handles most queries at zero cost — especially now
+  that every relation is written in the prose rather than in frontmatter.
 - **Single CLAUDE.md as both agent rules and project background** —
   rejected. Different change frequencies, different audiences, different
   lengths. Split into CLAUDE.md (rules) + PROJECT.md (background).
 - **Strict TDD enforcement (Superpowers style)** — rejected. Too rigid for
   research code and LLM apps. Replaced with Verification + Keepers /
   Throwaways.
-- **Experiments as journal sub-type (`type: experiment`)** — rejected.
-  Separate `experiments/` directory gives better browse experience for
-  paper writing.
+- **Type as an ID prefix (`D-007`, `E-021`)** — rejected. The prefix is
+  assigned at creation, the moment of least information, and freezes a
+  judgment into an identifier that a thousand references depend on. Type is
+  a field; one counter serves every type, which additionally makes "links
+  point backwards" expressible as `target < source`.
 - **One skill per action (new-decision, supersede, reindex, ...)** —
   rejected. Same cognitive domain belongs in one skill; deterministic
   operations belong in scripts.
-- **Session-end as an explicit step** — rejected. Session is a soft
-  concept; explicit boundaries get missed or fragmented. Replaced with
-  event-driven `atlas-log`: append on substantial work events, close
-  only with user confirmation.
-- **Plan and journal as separate files** — rejected. They describe the
-  same work unit. Plan + Work log + Close are sections within one journal
-  entry that evolves over time.
-- **One active journal entry per project at any time** — rejected.
-  Parallel work across windows / topics is normal. Each agent instance
-  tracks its own current entry; the index supports any number of actives.
-- **Pre-hoc confirmation for every atlas-log append** — rejected. Friction
-  kills the flow. Close-by-proposal still requires confirmation because it
-  is sticky.
+- **Writing records at session end** — rejected, twice. A session has no
+  observable end: the terminal closes, context compacts, work spans days.
+  Anything scheduled for that moment does not happen. Records are written at
+  events that do occur, and the commit is the boundary that publishes them.
+- **The journal as an inbox with a promotion step** — rejected on dogfood
+  evidence. Appending was free and filing a record cost a ceremony, so the
+  valuable content went where filing was free and stayed: 317 appends
+  against 49 promoted records, 49 of the appends empty, one entry at 155 KB
+  still marked active a month after its last edit. The fix is pricing, not
+  process — one command writes a record, so there is no backlog to drain.
+- **Grepping the agent's own transcripts instead of keeping records** —
+  rejected. Transcripts are per-machine, outside git, and pruned: the oldest
+  surviving one covered three weeks against a store covering months. They
+  remain the right fallback for "what did I actually do last Tuesday", and
+  they are why session context is not stored — the window in which "what am
+  I in the middle of" matters is the window transcripts cover.
+- **A catch-all record type** — rejected. It would absorb exactly the
+  content the inbox used to hold, renumbered.
 - **Post-hoc one-line announces after atlas operations** — initially
   adopted as the transparency channel, later reversed on dogfood evidence:
   announce content decomposes into either duplicated work content (belongs
@@ -264,11 +303,11 @@ pick the form — the agent and user do, per task.
 - **Inlining every active decision at session start** — replaced by the
   archive/constitution split (principle 12): the always-loaded surface is
   the curated Working rules section, not the unbounded decision log.
-- **`type` field in journal frontmatter** (e.g. `log` vs `plan`) —
-  rejected. One file already represents the full lifecycle of a work
-  unit; type would be redundant noise.
-- **Backfilling journal during bootstrap** — rejected. Journal records
-  events going forward. Past events live in git log; do not duplicate.
+- **Bulk-extracting the archived journal into records** — rejected. The
+  always-loaded budget admits a few dozen lines, so an expensive pass over
+  hundreds of appends would yield candidates the eviction mechanism
+  immediately discards. The archive stays grep-able; the user seeds the
+  initial constraints from working knowledge.
 - **`atlas-init` aborts when `docs/atlas/` exists** — rejected. Makes
   re-running unsafe and prevents partial recovery. Replaced with
   idempotent re-run: copy only missing files, skip existing ones, leave
@@ -280,19 +319,24 @@ pick the form — the agent and user do, per task.
 
 ## Open design questions
 
-- **Stale active entry threshold.** Currently using "3 days no update" as
-  the hint for "this might be stale, propose closing." Not validated
-  against real usage.
-- **Multi-machine sync.** When two machines diverge on the same atlas
-  (different journal entries on each), is there a smarter merge strategy
-  than manual resolution?
+- **Where intent lives.** `plan.md` is a placeholder. Plans, specs and
+  intent are a different problem from memory — the store holds what
+  happened, and nothing here says how the thing you meant to build should be
+  written down or kept in step with what got built.
+- **Multi-machine sync.** Two machines writing records in parallel will
+  claim the same number. Git surfaces that as a conflict rather than losing
+  a record, but renumbering on merge is manual.
+- **Memory eviction quality.** Compact rewrites the memory set and whatever
+  is not carried forward stops being preloaded. The published work this
+  borrows from trains the consolidator against task performance; there is no
+  equivalent signal here, so the quality of each rewrite is unmeasured.
 - **Research task verification.** How does `grill-me` handle research
   tasks where the hypothesis itself is being explored, so a Verification
   standard is genuinely hard to specify up-front?
 - ~~**`bootstrap-extras.md` consumption.**~~ Resolved: it is a one-time
   onboarding leftover, not a recurring concern — the user processes or
   deletes it at leisure; compact does not scan it.
-- **Cross-skill code sharing.** Each skill currently has its own scripts,
-  with some duplication (e.g. `parse_md` inline in multiple places).
-  Trade-off chosen for skill self-containment over DRY. Revisit if
-  duplication grows past a few small functions.
+- **Cross-skill code sharing.** `using-atlas` and `atlas-compact` import
+  the record layer from `atlas-entity` by relative path rather than carrying
+  copies. This trades skill self-containment for a single loader; whether
+  the coupling is acceptable at distribution time is untested.

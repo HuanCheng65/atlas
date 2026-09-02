@@ -1,125 +1,89 @@
 ---
 name: atlas-entity
-description: Manages structured entities under docs/atlas/ — decisions (D-NNN), experiments (E-NNN), and open questions (Q-NNN). Invoke proactively WHENEVER a long-term architectural / framework choice gets settled in conversation (the user usually won't explicitly label it — recognition is on you), an unresolved question surfaces that won't be answered this session, an experiment produces a citable result, or a previous decision needs to be superseded / a question closed. Also use when the user asks to list, search, or audit any of these entities. Always run scripts/validate.py and scripts/reindex.py after structural changes.
+description: Operations on the record store under docs/atlas/records/ — listing, searching and auditing records, renaming one, running validate and reindex, and the one-time migration from the old D/E/Q layout. Writing a single record needs no skill; the trigger conditions and the new.py call live in using-atlas, which is always loaded. Use this skill when the user asks to see or audit records, when validate reports something you need to interpret, or when a change touches many records at once.
 ---
 
-# Atlas Entity Management
+# Atlas Records
 
-Three kinds of structured entries live under `docs/atlas/`:
+The store is `docs/atlas/records/`, one flat directory, one counter. Everything
+about writing a single record — the four types, the triggers, the new.py call —
+is in `using-atlas`, which is always in context. This skill covers the
+operations you reach for less often.
 
-- **D-NNN — Decisions**: long-term architectural or strategic choices
-- **E-NNN — Experiments**: research runs with hypothesis, config, result
-- **Q-NNN — Questions**: open questions awaiting resolution
+## Reading the store
 
-Schemas: `reference/schemas.md`. Lifecycle (status state machines): `reference/lifecycle.md`. Read those before structural changes.
+`records/_index.md` is generated: one line per record, grouped by type, showing
+each record's standing and how many records cite it. It is a browse view for a
+human. When you need facts, read the record files; when you need to find
+something, ripgrep the store — every relation is prose, so it greps.
 
-## Naming: title is the menu signal
-
-The title is what `atlas-orient` shows in its summary. The agent decides whether to fetch the body based on the title alone, so titles must do real work — they cannot be topic labels.
-
-**Universal rules:**
-- **State the answer / question / claim, not the topic.** Topic-label titles ("Logging strategy", "Naming things", "Database stuff") fail — the reader still has to fetch the body to know what was decided.
-- **Self-contained.** Readable without prior context. Don't refer to other entity IDs in the title ("Refinement of D-007"); restate the substance.
-- **One sentence-fragment, ≤70 chars at the slug.** If `new.py` produces a slug longer than ~70 chars, the title is too long — tighten before filling the body.
-
-**Type-specific:**
-
-| Type | Title shape | Good | Bad |
-|---|---|---|---|
-| **D** | An answer / a chosen position | "Plain text + git as the data layer" / "Event-driven skill activation, not session-phase" / "Translate framework vocab in chat; keep file paths in announces" | "Data layer choice" / "Skill activation" / "Transparency rule" |
-| **Q** | A question, ending in `?` (or implied) | "Stale active-journal threshold (3 days?)" / "How should multi-machine sync handle divergent state?" | "Sync stuff" / "Journal staleness" |
-| **E** | A testable claim or comparison | "Does Split-K beat dense GEMM on small batch?" / "FlashAttention vs FlexAttention on Kuairand seq lengths" | "GEMM experiment" / "Attention benchmark" |
-
-**Test your title:** read it cold, without the body. Do you know what was decided / asked / tested? If no — rewrite.
-
-## Section conventions: first section is one sentence, self-contained
-
-The first content section of each type must be **one sentence, independently readable**. `atlas-orient` pulls this sentence into its summary, so the agent gets the call without fetching the full file:
-
-- **D** — `## Decision` is one sentence. State what was chosen. Multi-clause OK; multi-paragraph not.
-- **Q** — `## Why this matters` first sentence is the impact statement. State what's at stake if unresolved.
-- **E** — `## Hypothesis` is one falsifiable claim sentence. State what's being tested.
-
-If you find yourself writing two paragraphs into the first section, move the extra into the next one (Rationale for D, Context for Q, Setup for E).
-
-## When to create what
-
-### Decision (D-NNN)
-The core test (also in `using-atlas`, where you make this call before invoking this skill): a decision is a *constraint on future choices*, not *important work*. If three months from now you'd need to dig up the rationale to proceed on related work, it's a D; if it ends with this work unit, it's a journal note.
-
-Concretely, a journal note becomes a Decision when at least two are true:
-- It would be confusing to a future you without rationale
-- It affects how future work in this project will be done
-- It has alternatives that were considered and rejected
-- It will likely be referenced from other entities
-
-Examples: "use Split-K decomposition", "Kuairand-1K as primary benchmark", "Compose Navigation 3 over Navigation 2".
-
-### Experiment (E-NNN)
-Any run that produces a result you might cite later. SLA-style benchmark with hypothesis, or an eval run for an LLM app.
-
-### Question (Q-NNN)
-Concrete unresolved question that won't be answered in this session. Don't create one for things you'll figure out in the next 30 minutes — those are journal notes.
+Derived standing never lives in a file. A record is superseded, refuted or
+answered because a *later* record says so with a typed edge; `reindex.py`
+recomputes that on every run.
 
 ## Scripts
 
-All scripts assume CWD is the project root (where `docs/atlas/` lives).
-
-### `new.py --type D|E|Q "<title>"`
-Creates the next entity. Reads `docs/atlas/_templates/<type>.md`, assigns next available ID, fills placeholders, reindexes its type, prints the new file path. Open it and fill in the body sections.
-
 ```bash
-python3 ~/.claude/skills/atlas-entity/scripts/new.py --type D "use CUDA graphs for dispatch"
-# -> docs/atlas/decisions/D-012-use-cuda-graphs-for-dispatch.md
+S=~/.claude/skills/atlas-entity/scripts
+
+python3 $S/validate.py            # identity, schema, links, direction
+python3 $S/reindex.py             # regenerate records/_index.md
+python3 $S/new.py --help          # create one record (usually called from using-atlas)
+python3 $S/rename.py 047 new-slug # change a slug and rewrite every link to it
+python3 $S/migrate.py --dry-run   # one-time D/E/Q conversion; report first
 ```
 
-### `supersede.py <old> <new>`
-Bidirectional supersedes between two decisions. Sets `old.status=superseded`, appends `new` to `old.superseded-by`, appends `old` to `new.supersedes`.
+`new.py` and `rename.py` reindex on their own. Run `validate.py` after any edit
+you made by hand, and always before committing.
 
-### `close_question.py <q-id> --by <ref> | --wontfix`
-Closes a question. `<ref>` is an entity id (e.g. D-012) or journal filename. Status becomes `answered`, `merged-into-D`, or `wontfix`.
+## What validate enforces
 
-### `reindex.py [--type D|E|Q]`
-Rebuilds `_index.md` from entity frontmatter. Safe to run unconditionally. Auto-run by `new.py`; run manually after supersede/close_question or hand-edits to frontmatter (e.g. status changes).
+- **Identity**: the filename is `NNN-slug`, `id` agrees with it, no two files
+  claim a number. Numbers are never reused — a retired number keeps old links
+  meaningful.
+- **Schema**: `id`, `title`, `date`, `type`, `tags` present; experiments also
+  carry `hypothesis`, `config`, `result`, `conclusion`, `artifacts` as one-line
+  machine summaries capped at 300 characters, with the full prose in the body.
+  A body that says "see frontmatter" instead of stating its content is an error.
+- **Deleted fields**: `status`, `related`, `supersedes`, `superseded-by`,
+  `refuted-by`, `answered-by`, `triage`, `affects`, `source-journal` and
+  `severity` are rejected by name. Each is derived now, and a field nothing
+  reads is a field that drifts.
+- **Titles**: at most 90 columns, counting CJK as two. The cap is not
+  cosmetic — it is the mechanical half of "one record, one claim", because two
+  findings do not fit in one line.
+- **Links**: every `[[NNN-slug]]` resolves to a file, every typed edge uses a
+  known verb, and both point at lower numbers. Memory records may point
+  forwards; they are rewritten in place rather than superseded.
 
-### `validate.py`
-Checks orphan refs, bidirectional consistency, status legality, required fields. Run before committing entity changes. Exits non-zero on errors.
+## Renaming
 
-## Standard workflows
+A slug is part of the link graph — Obsidian resolves wikilinks by filename and
+ignores frontmatter aliases — so renaming is a whole-store rewrite. Always use
+`rename.py`; it rewrites `[[old]]` and `[[old|display text]]` and leaves prose
+that merely quotes the stem alone.
 
-### Long-term decision made
-1. Confirm with the user it meets the criteria above — propose at a natural seam (work wrap-up, before close, a user pause), not mid-flow; the exception is a conflict with a Working rule / active decision, which surfaces immediately
-2. `new.py --type D "<title>"`
-3. Open the returned path; fill Context / Decision / Rationale / Consequences / Alternatives
-4. Set `status: active` (template defaults to `planned`, which means "documented but not yet adopted" — most newly-recorded decisions are immediately in effect)
-5. Leave `triage: pending` (template default) — it keeps the decision in orient's menu until reviewed; promotion into PROJECT.md's Working rules happens at a review pass (atlas-compact or the user), not at creation
-6. If supersedes existing: `supersede.py <old-id> <new-id>` — if the old decision was promoted, update or remove its Working rules line in PROJECT.md too; `validate.py` fails until the pair is consistent
-7. If answers an open question: `close_question.py <q-id> --by <new-id>`
-8. `reindex.py` then `validate.py`
+## Auditing
 
-**Legal status values** (validated by `validate.py`):
-- **D**: `planned | active | superseded | rejected` — *not* `accepted`/`adopted`/`approved`; atlas uses `active`
-- **E**: `planned | running | completed | abandoned`
-- **Q**: `open | answered | wontfix | merged-into-D`
+When the user asks what state the store is in, answer from `validate.py` plus
+the index rather than from reading every file. Useful shapes:
 
-Full state machines: `reference/lifecycle.md`.
+- records nothing cites and nothing has acted on — candidates for consolidation
+- questions with no answering edge, sorted by age
+- tags used once, which are usually a synonym for one already in the store
 
-### Experiment lifecycle
-1. `new.py --type E "<title>"` at planning time, fill Hypothesis + Setup
-2. When run starts, edit status to `running`, append Run log entries
-3. When done, fill Result + Conclusion, edit status to `completed`
-4. `reindex.py` then `validate.py`
+`atlas-compact` computes these systematically; do it by hand only for a
+one-off question.
 
-### Question raised
-1. `new.py --type Q "<question>"`
-2. Fill Why-this-matters / Context / Investigation-needed
-3. `reindex.py`
+## Migration
 
-### Reference an entity by id ("see D-007")
-Read directly: glob `docs/atlas/decisions/D-007-*.md`.
+`migrate.py` converts a pre-record store: it renumbers by a topological sort of
+the reference graph so every record outranks what it cites, rewrites prose
+`D-007` references as wikilinks, turns `supersedes` and `answered-by` into typed
+edges, drops the derived fields, rewrites PROJECT.md's constitution pointers,
+and moves the journal to `docs/atlas/archive/` untouched.
 
-## Out of scope for this skill
-- Writing journal entries → `atlas-log` skill
-- Proposing entity promotions from journal → `atlas-compact` skill
-- Loading session context → `atlas-orient` skill
-- Brainstorming requirements → `grill-me` skill
+Run `--dry-run` first and read the report. Two things it cannot fix on its own,
+because both need judgment: a title over the budget, and a forward reference —
+an older record edited to cite a newer one, which is the pattern the store now
+prevents. Resolve those in the source, then run it for real.

@@ -1,68 +1,85 @@
 ---
 name: atlas-compact
-description: Maintenance pass over the atlas store under docs/atlas/ — clears backlog (stale active entries, decisions pending triage, aging open questions) and consolidates existing records (merge/supersede overlapping decisions, close implicitly-answered questions, distill recurring journal themes into topics, refresh Glossary/PROJECT.md wording). Use WHEN the user asks to run compact / clean up / review the store, or accepts orient's backlog hint. Runs end-to-end WITHOUT per-item confirmation — invocation is the authorization; safety comes from bounded writes, validate gating, and landing the whole run as one revertable commit. Not for onboarding (atlas-bootstrap) and never run in the background.
+description: Maintenance pass over the record store under docs/atlas/records/. Two jobs — consolidating the memory records, whose one-line titles are loaded into every session and therefore have a budget, and reviewing the store for records that have quietly stopped being true. Use WHEN the user asks to clean up or review the store, or when the memory budget is exceeded. Runs end-to-end WITHOUT per-item confirmation; safety comes from bounded writes, validate gating, and landing the run as one revertable commit. Not for onboarding. Never run in the background.
 ---
 
 # Atlas Compact
 
-You run a maintenance pass over the project's atlas store. The job: keep the store **small, current, and true**. Two halves:
+You keep the store small, current and true. Invocation is the authorization —
+work through the run without asking per item. The safety net is that everything
+lands as one commit the user can revert.
 
-- **Backlog** — things nobody handled yet: active journal entries gone quiet, decisions still pending triage, open questions aging without progress.
-- **Consolidation** — things recorded once and degraded since: overlapping decisions that should merge, questions that later work answered implicitly, recurring journal themes worth distilling into a topic, Glossary or PROJECT.md wording that drifted from actual usage.
+Start with the shortlist:
 
-## Authorization model (read this first)
+```bash
+python3 ~/.claude/skills/atlas-compact/scripts/scan.py
+```
 
-**Invoking compact authorizes the whole run.** Do not pause for per-item confirmation — the user invoking this skill is the confirmation, the same way an explicit close command is the confirmation in atlas-log. Confirmation prompts here degenerate into reflexive approval; the real review artifact is the git diff of the run's single commit, which the user inspects (or doesn't) on their own time, and reverts atomically if they disagree.
+It computes every mechanical signal. Read what it points at; do not read the
+whole store.
 
-What replaces confirmation is **bounded writes**. A compact run may only:
+## Job one: consolidate memory
 
-- create new files (topics, merged decision records)
-- flip statuses and triage values through the existing scripts (`close.py`, `close_question.py`, `supersede.py`, frontmatter triage edits)
-- add or fix links, `related` refs, and `(D-NNN)` pointers
-- reword Glossary entries and PROJECT.md lines (including Working rules)
+Memory records hold the constraints currently in force, and their titles are
+loaded into every session. That is a budget, and the store grows past it the way
+any working set does.
 
-A compact run **never**:
+Consolidation is a **rewrite, not a review**. Take the memory records the scan
+flags — over budget, untouched for a year, or overlapping — and write the set
+that should be in force now. What you do not carry into the rewrite stops being
+preloaded. That is the point: eviction is the default, and rescuing a constraint
+takes a deliberate act rather than deleting one taking a decision.
 
-- deletes a file
-- rewrites journal bodies or the text of superseded decisions (history is frozen; consolidation writes *new* summaries and flips statuses)
-- runs in the background or on a schedule — the judgment half needs a live agent in a session the user started
+Eviction is cheap because it loses nothing. The experiment or decision that
+established a constraint is still in the store; only the always-loaded summary
+goes away.
 
-## Run procedure
+Three things to look for:
 
-1. **Scan.** From project root:
+- **Overlap.** Two constraints saying the same thing at different precision:
+  keep the precise one, cite the evidence from both.
+- **Expiry.** The constraint's subject is gone — the file it names no longer
+  exists, the code path was deleted. The scan lists records citing dead paths.
+- **Absorption.** A constraint that has become how the code works, enforced by
+  a check or impossible to violate. It is no longer a constraint; it is a fact
+  about the artifact, and the artifact says it.
 
-   ```bash
-   python3 ~/.claude/skills/atlas-compact/scripts/scan.py
-   ```
+Memory records are rewritten in place. Git keeps what they used to say.
 
-   Optional: `--stale-days N` (default 3), `--cluster-min N` (default 3). The output is an agenda of candidates — data, not verdicts.
+## Job two: review the store
 
-2. **Check the tree.** `git status docs/atlas PROJECT.md` — if those paths already carry uncommitted changes, you cannot give the run its own clean commit. Finish the run but **skip the commit step and tell the user why**; do not mix unrelated changes into a compact commit.
+The scan surfaces three candidate sets. Each needs judgment, which is why they
+are candidates and not actions.
 
-3. **Judge each agenda item** against the actual files (open bodies as needed):
-   - *Stale active entry* — work clearly finished? Close it via `close.py` with an honest `--result` (not reflexively `passed`). Genuinely unfinished? Leave it; note it in the report.
-   - *Pending triage decision* — apply the promotion test (*does violating it produce visible resistance?*): behavioral rule → set `triage: promoted` and add the one-line rule with its `(D-NNN)` pointer to PROJECT.md's Working rules; embodied event → `triage: archival`.
-   - *Possibly-answered question* — read the question and the later work; if actually answered, `close_question.py Q-NNN --by <ref>`. A tag overlap is a hint, not an answer.
-   - *Decision overlap pair* — only merge when the records genuinely state one rule in two places: create the merged decision via `new.py`, then `supersede.py` both old ones onto it, and update any Working rules lines. Different-but-related decisions just get `related` links.
-   - *Tag cluster* — a topic is worth writing when the cluster contains reusable knowledge a future session would otherwise re-derive from multiple journal bodies. Write `docs/atlas/topics/<name>.md`, free form, linking the source entries. Volume alone is not a reason.
-   - *Glossary / PROJECT.md drift* — fix wording where the store's own usage has moved on.
+- **Questions with no answering record.** An old question that nothing cites is
+  usually one that got answered in passing. Find the record that answered it and
+  add `(answers:: [[NNN-slug]])` to *that* record — adding a typed edge to a
+  published record is permitted, because it changes nothing the record claims.
+  If the question stopped mattering rather than being answered, say so in a new
+  record and answer it there.
+- **Records sharing most of their neighbourhood.** Same type, cited by and
+  citing mostly the same records: often two measurements of one thing, or a
+  decision restated. Merge by writing one record that supersedes both, not by
+  editing either.
+- **Tags used once.** Usually a synonym for a tag already in the store. Fold
+  them into the existing vocabulary; leave a genuinely distinct one alone.
 
-4. **Validate.** `validate.py` must exit clean; fix anything it flags before committing. Re-run `reindex.py` (both) if any frontmatter changed outside the scripts.
+## Finishing
 
-5. **Journal the run.** Open an entry via `open.py` with tag `compact` (the scan uses it to date the last run), one paragraph on what the agenda was; close it with what was done. This is the run's own record.
+```bash
+python3 ~/.claude/skills/atlas-entity/scripts/validate.py
+python3 ~/.claude/skills/atlas-entity/scripts/reindex.py
+```
 
-6. **Commit.** Stage exactly the files this run touched (`docs/atlas/`, `PROJECT.md`) and commit with a message naming the content — what was merged, closed, distilled — never "update atlas docs". One run, one commit.
+Commit the run as one commit whose message says what changed in the store's
+content — which constraints are now in force, which questions closed — not that
+compact ran.
 
-7. **Report.** Tell the user in a few sentences what changed and what was deliberately left alone (e.g. "left the X entry open — looks unfinished"). This is work content, not a framework announce; plain language.
+## Anti-patterns
 
-## Judgment defaults
-
-- When unsure whether an entry is done, whether a question is answered, or whether two decisions are really one — **leave it and say so in the report**. A false merge or false close costs more than another cycle of waiting; "no action" is always a legitimate verdict.
-- Honesty over streaks: a stale entry whose verification never ran closes as `partial` or `failed`, not `passed`.
-- Working rules line count is a budget. If promotion would push it past ~15 lines, look for rules to merge or demote first.
-
-## Cross-references
-
-- `atlas-orient` surfaces the backlog hint that usually triggers this skill
-- `atlas-log` / `atlas-entity` scripts do all the actual writing
-- `atlas-bootstrap` is for onboarding — compact assumes the store already exists
+- **DO NOT** ask the user to approve each item. Invocation authorized the run.
+- **DO NOT** edit a published record's claims to bring it up to date. Write a
+  newer record with a typed edge; adding an edge is the only permitted touch.
+- **DO NOT** keep a memory record because deleting it feels lossy. The evidence
+  survives in the store; only the preloaded line goes.
+- **DO NOT** run in the background. The run rewrites files and must be visible.

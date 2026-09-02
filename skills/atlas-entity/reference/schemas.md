@@ -1,68 +1,65 @@
-# Atlas Entity Schemas
+# Record Schema
 
-All three entity types share a base frontmatter, with type-specific extensions. Every field listed below must be present in the frontmatter (with empty list/null/empty dict as default value when no content yet). `validate.py` enforces this.
+One file per record: `docs/atlas/records/NNN-slug.md`. `validate.py` is the
+authority; this page is what it checks and why, plus the body shapes it cannot
+check.
 
-## Base fields (all types)
+## Frontmatter
 
-| Field | Type | Notes |
+Every record:
+
+| field | | |
 |---|---|---|
-| id | string | Format `<TYPE>-NNN`, 3-digit zero-padded |
-| title | string | Human-readable |
-| date | YYYY-MM-DD | Creation date |
-| status | string | See lifecycle.md; valid values differ per type |
-| tags | list[string] | Free-form, can be `[]` |
-| related | list[string] | Cross-type refs, e.g. `[D-003, Q-012]` |
-| source-journal | string or null | Journal filename that spawned this, or null |
+| `id` | int | matches the filename; never reused after a record is deleted |
+| `title` | string | the claim, not the topic; at most 90 columns, CJK counted double |
+| `date` | `YYYY-MM-DD` | when it was written, not when it is true from |
+| `type` | `memory` \| `experiment` \| `decision` \| `question` | correctable later; it is a judgment, not identity |
+| `tags` | list | from the store's existing vocabulary unless introduced with `--new-tag` |
 
-## Decision (D-NNN) specific
+Experiments carry five more, each a **one-line machine summary** capped at 300
+characters. They exist to be read without loading the body; the body owns the
+prose, and a body that points back at frontmatter is an error.
 
-| Field | Type | Notes |
-|---|---|---|
-| supersedes | list[string] | D-ids this supersedes |
-| superseded-by | list[string] | D-ids that supersede this |
-| affects | list[string] | Paths or modules, e.g. `[src/kernel/sla_*]` |
-| triage | string | `pending \| promoted \| archival` — review state. `pending` shows in orient's menu; `promoted` requires a `(D-NNN)` pointer line in PROJECT.md (validate enforces the pair both ways); `archival` is a reviewed event record |
+| `hypothesis` | one falsifiable sentence |
+| `config` | the parameters that would change the result |
+| `result` | the key numbers |
+| `conclusion` | the verdict in a sentence or two |
+| `artifacts` | where the raw output lives |
 
-Status: `planned | active | superseded | rejected`
+Nothing else. In particular there is no `status`, and no field naming another
+record: standing and relations are both derived from the link graph.
 
-## Experiment (E-NNN) specific
+## Body
 
-| Field | Type | Notes |
-|---|---|---|
-| hypothesis | string or null | One-sentence claim |
-| config | object | Key params only, short scalar values |
-| result | object | Key numbers only. `{}` until completed |
-| artifacts | list[string] | Paths to traces, plots, logs |
-| conclusion | string or null | One- or two-sentence verdict |
+Free prose under an `# Title` heading, with the relations written into the
+sentences that carry the reasoning. Suggested shapes — none enforced:
 
-Status: `planned | running | completed | abandoned`
+- **memory** — the constraint, then what to do about it. Cite the record that
+  established it. Keep it short: memory titles are loaded into every session,
+  and the file is rewritten in place when understanding changes.
+- **experiment** — Hypothesis, Setup, Result, Conclusion. Setup carries enough
+  to re-run it; Result carries the numbers; Conclusion says what it settles and
+  what it does not.
+- **decision** — Context (what forced the choice), Decision, Consequences
+  (what it commits the project to, including what it gives up). Consequences is
+  the section that gets skipped and the one a future reader needs.
+- **question** — why it matters, what is known, what would answer it.
 
-The four content fields (`hypothesis`, `config`, `result`, `conclusion`) are
-machine summaries for scanning without loading bodies — validate rejects any
-string value in them over 300 chars. The body sections (Hypothesis / Setup /
-Result / Conclusion) own the full prose; a body that says "见 frontmatter" /
-"see frontmatter" instead of its content is a validate error.
+## Links
 
-## Question (Q-NNN) specific
+```
+[[047-slug]]                    a reference; produces a backlink
+[[047-slug|display text]]       the same, with alternate text
+(refutes:: [[021-slug]])        a typed edge
+```
 
-| Field | Type | Notes |
-|---|---|---|
-| severity | string | `low \| medium \| high` |
-| answered-by | string or null | D-id, E-id, or journal filename |
+Verbs: `supersedes`, `refutes`, `answers`. Nothing else; validate rejects an
+unknown one rather than treating it as prose. A typed edge changes how the
+**target** renders, which is why it is declared on the newer record — the older
+one is never edited.
 
-Status: `open | answered | wontfix | merged-into-D`
+Links point at lower numbers. Memory records are exempt, because they are
+rewritten in place rather than superseded.
 
-## File naming
-
-`<TYPE>-NNN-<slug>.md`. Slug is lowercase alphanumeric with hyphens, capped at ~70 chars (`new.py` truncates at a word boundary and warns).
-
-Example: `D-012-use-cuda-graphs-for-dispatch.md`
-
-## Cross-references
-
-Any entity may reference any other via:
-- `related: [D-003, E-007, Q-012]` — semantic relation, no specific meaning
-- Decision-specific: `supersedes`, `superseded-by`
-- Question-specific: `answered-by`
-
-`validate.py` checks all references resolve and bidirectional pairs (supersedes ↔ superseded-by) are consistent.
+Code fences and inline code are stripped before parsing, so documentation may
+quote the syntax freely.
