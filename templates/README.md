@@ -76,4 +76,4 @@ Four types, with `type` an ordinary field that can be corrected later:
 | Check the store | `atlas-entity/scripts/validate.py` |
 | List or audit records | `atlas:atlas-entity` |
 | Periodic maintenance | `atlas:atlas-compact` |
-| Onboard a new project | `atlas:atlas-bootstrap` |
+| Set a project up on atlas | `atlas:atlas-bootstrap` — once, whether the project is new or has history |

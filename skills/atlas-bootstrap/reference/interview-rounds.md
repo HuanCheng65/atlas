@@ -29,7 +29,7 @@ Goal: produce a complete PROJECT.md with all sections filled.
 
 ### Drafting
 
-After the questions, write the complete PROJECT.md to project root. Show it to user. Accept or iterate once. Leave **Working rules** empty in this round — Round B fills it as confirmed decisions get triaged.
+After the questions, write the complete PROJECT.md to project root. Show it to user. Accept or iterate once. Leave **Working rules** empty in this round; Round B fills it from confirmed decisions, and on a project with no history it stays empty.
 
 ### Round A hard rules
 
@@ -59,14 +59,13 @@ Phrasing template for each candidate:
 
 If yes: draft frontmatter + body with concrete `source` field. User reviews and edits.
 
-### Triage each confirmed decision
+### Does the decision also need a working rule?
 
-For every confirmed D, also propose its `triage` value (test: *does violating it produce visible resistance?*):
+Most do not. A record is consulted when someone works near it; PROJECT.md's **Working rules** are loaded into every session, so that section is a budget.
 
-- Embodied in code / repo structure (visible resistance) → `archival`
-- A standing rule that nothing mechanically enforces → also draft a one-line entry for PROJECT.md's **Working rules** section, ending with a `([[NNN-slug]])` link to the record
+One test: *if nothing here stopped an agent from violating this, would it get violated?* A decision embodied in the code, the directory layout or a script's refusal is already enforced — leave it as a record. A standing rule that only exists in someone's head is what the section is for.
 
-Write the confirmed Working rules lines into PROJECT.md during this round (the section exists from Round A's template). `validate.py` in Phase 3 enforces the promoted⟺pointer pairing, so unpaired states fail loudly.
+Ask the user per candidate rather than promoting on your own judgement, and write the confirmed ones into PROJECT.md during this round: one line each, ending with a `([[NNN-slug]])` link to the record it comes from.
 
 ### Round B hard rules
 

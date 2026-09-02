@@ -1,11 +1,13 @@
 ---
 name: atlas-bootstrap
-description: Onboard an EXISTING project (already running for weeks or months, with or without other frameworks like Superpowers / GSD) to atlas. Use ONCE per project, never for fresh starts. Use WHEN the user says "set up atlas here", "migrate this to atlas", "bootstrap atlas", or right after running atlas-init on an existing project. Produces PROJECT.md and an initial set of decision, question and experiment records by combining a deterministic project scan with a 4-round interview. Records only what the project's own artifacts and the user's memory can evidence.
+description: Set a project up on atlas — one starting today, or one already running for months, with or without other frameworks like Superpowers / GSD. Use ONCE per project. Use WHEN the user says "set up atlas here", "start a new project with atlas", "migrate this to atlas", or "bootstrap atlas". Creates the store if it does not exist yet, then interviews the user into a complete PROJECT.md, plus — where the project has history to draw on — an initial set of decision, question and experiment records. Records only what the project's own artifacts and the user's memory can evidence.
 ---
 
 # Atlas Bootstrap
 
-You onboard an existing project to atlas by combining (1) a deterministic scan of the project's artifacts and (2) a structured interview that produces PROJECT.md plus an initial set of entities.
+You set a project up on atlas: create the store, then run a structured interview that produces PROJECT.md and, on a project with history, an initial set of records. Where the project has artifacts, a deterministic scan runs first so the interview proposes rather than asks blind.
+
+The two cases differ in one thing only — how much evidence exists before the interview starts. A project beginning today has none, so the scan finds nothing and the rounds that extract from history produce nothing. That is the correct result, not a failure. PROJECT.md still gets written, and it is the file that matters most: session start reads it every time, so a project left on the template loads placeholder guardrails forever.
 
 ## Override: this skill IS the interview
 
@@ -17,15 +19,14 @@ Follow the 4-round interview exactly as written. One question at a time. Wait fo
 
 ## When to use
 
-- Project has code, git history, README, possibly other framework artifacts
-- atlas-init has been run (skeleton exists at `docs/atlas/`)
-- User explicitly wants to onboard, not start from scratch
+- The user wants this project on atlas, whether it starts today or has months of history
+- Once per project. The store may or may not exist yet; Phase 0 handles both
 
 ## When NOT to use
 
-- Brand new empty project → atlas-init alone is enough
 - Adding a single record to an already-bootstrapped project → write it directly; see using-atlas
-- Project too small to need state (one file, no real history) → skip atlas entirely
+- Project too small to need state (one file, no real history, no plan to grow) → skip atlas entirely
+- The store exists and PROJECT.md is already filled → the project is bootstrapped; do not re-run
 
 ## Hard rules (slop prevention)
 
@@ -40,9 +41,17 @@ These are non-negotiable. Violating them pollutes atlas long-term.
 
 ## Workflow
 
-### Phase 0: Prerequisites
+### Phase 0: Create the store
 
-If `docs/atlas/` does not exist, ask the user to run atlas-init first. Do not proceed without it.
+If `docs/atlas/` already exists, go to Phase 1.
+
+Otherwise say what setting the project up involves and ask before doing it — it writes to the project root, and the answer may be "not yet". Name the three things: a `docs/atlas/` directory for the records, a `PROJECT.md` the two of you fill in during this interview, and a short pointer added to `CLAUDE.md`. Then:
+
+```bash
+atlas-init
+```
+
+It is idempotent, creates nothing that exists already, and leaves any edit of the user's alone. If the user declines, stop here — there is nowhere to write.
 
 ### Phase 1: Scan (autonomous)
 
@@ -56,7 +65,9 @@ Output goes to `/tmp/atlas-bootstrap-scan.yaml`. Read it fully.
 
 Then do the manual reads listed in `reference/scan-checklist.md`. Those are things scan.py cannot do for you (e.g. reading README body).
 
-By end of Phase 1 you must be able to articulate:
+**On a project with little or no history** the scan comes back nearly empty. Do not treat that as a problem to work around, and do not go looking for evidence elsewhere: it means Round A is asked rather than proposed, and Rounds B–D have nothing to extract. Say so plainly and go to Phase 2.
+
+Otherwise, by end of Phase 1 you must be able to articulate:
 - What the project is, in one sentence
 - 3-5 main themes of recent work
 - 2-3 candidate decisions you suspect (do not write yet — confirm in Round B)
@@ -75,17 +86,19 @@ Follow `reference/interview-rounds.md`. Hard rules across all rounds:
 
 Rounds:
 
-- **Round A — PROJECT.md** (10-15 min): background, long-term goals, non-goals, hard constraints, glossary, current stage, references
+- **Round A — PROJECT.md** (10-15 min): background, long-term goals, non-goals, hard constraints, glossary, current stage, references. Always runs; it is the round that needs no history.
 - **Round B — Decisions** (15-30 min): extract 3-10 decisions with evidence
 - **Round C — Open Questions** (5-10 min): extract 2-5 questions from TODOs + user memory
 - **Round D — Experiments** (10-20 min, research only): extract 0-10 experiments
+
+A project that starts today runs Round A and stops. B, C and D extract from what already happened, and nothing has. Asking anyway produces invented decisions, which is the failure this skill exists to prevent. One question is worth asking directly instead: whether any constraint already binds — a fixed deadline, hardware, a dependency that cannot change. Those belong in PROJECT.md's Hard constraints, not in records.
 
 ### Phase 3: Materialize
 
 For each confirmed item:
 
 - PROJECT.md → write to project root
-- ROADMAP.md → update `docs/atlas/ROADMAP.md` if user has current milestones (else leave the template as-is)
+- ROADMAP.md → `docs/atlas/ROADMAP.md` holds the current milestone and nothing else. Ask for it in one question: what is the next thing that would count as done. A project starting today has an answer to that even with no history, and the template text is worse than a rough one.
 - each record → one `new.py` call, body on stdin
 - Tag every record from this pass `bootstrap`, so a later reader can tell what was reconstructed from artifacts and what was written as it happened
 
@@ -125,6 +138,8 @@ state from now on, and records accumulate as the work produces them.
 
 If `bootstrap-extras.md` was created, name it explicitly so the user can find it.
 
+On a project that started today the report is shorter and says so — PROJECT.md and the milestone written, no records, and the reason: there is nothing yet to have decided. Do not present that as a partial run.
+
 ## Anti-patterns
 
 - **DO NOT** skip Phase 1 because the project looks familiar. Concrete scan output prevents recall hallucination.
@@ -134,6 +149,8 @@ If `bootstrap-extras.md` was created, name it explicitly so the user can find it
 - **DO NOT** clean up TODO markers in code. Not this skill's job.
 - **DO NOT** invent goals the user did not confirm.
 - **DO NOT** declare bootstrap complete without running validate.py.
+- **DO NOT** run `atlas-init` before saying what it writes and getting an answer. It touches the project root and CLAUDE.md.
+- **DO NOT** manufacture records for a project that has no history yet. An empty store after Round A is the right outcome; the first real record gets written when the first real thing happens.
 
 ## After bootstrap
 

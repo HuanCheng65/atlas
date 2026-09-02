@@ -261,9 +261,12 @@ described in its SKILL.md. The typical activation timeline for a task:
                       without per-item confirmation, one revertable commit
 ```
 
-For new projects: `atlas-init` (one-time) → normal workflow above.
-For existing projects: `atlas-init` then `atlas-bootstrap` (one-time) →
-normal workflow above.
+Either way the entry point is `atlas-bootstrap`, once: it runs `atlas-init` if
+the store does not exist, then interviews. The two cases differ only in how
+much evidence exists beforehand — a project starting today writes PROJECT.md
+and its first milestone and no records, because nothing has happened yet to
+have decided. Running `atlas-init` alone is possible but leaves PROJECT.md on
+the template, and that file is loaded into every session.
 
 ## Verification: Keepers vs Throwaways
 

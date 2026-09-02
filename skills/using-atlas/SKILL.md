@@ -163,7 +163,7 @@ records-only commit is legitimate only when the records are themselves the work.
 | non-trivial work about to start | `atlas:grill-me` |
 | list / search / audit records, or a bulk record operation | `atlas:atlas-entity` |
 | "clean up the store", memory over budget | `atlas:atlas-compact` |
-| onboarding an existing project | `atlas:atlas-bootstrap` |
+| setting a project up on atlas — starting one, or onboarding one that exists | `atlas:atlas-bootstrap` |
 
 ## Anti-patterns
 
