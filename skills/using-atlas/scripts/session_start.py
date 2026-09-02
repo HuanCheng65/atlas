@@ -243,6 +243,15 @@ def render_records(out, records, state):
                f"one directly at `{_lib.RECORDS}/NNN-*.md` when a title above is the "
                f"one you need.*")
 
+    if _lib.ID_MAP_FILE.exists():
+        # Only this project's own older documents carry these, so the line
+        # costs nothing anywhere the store was never renumbered.
+        out.append("")
+        out.append(f"*Older documents here cite records as `D-007` / `E-021`, from "
+                   f"before the store was renumbered. `grep '^E-021' "
+                   f"{_lib.ID_MAP_FILE}` resolves one. They are prose, not links — "
+                   f"read through them, do not rewrite them.*")
+
 
 def main():
     # On resume the conversation context survives, so the skill body is

@@ -11,7 +11,7 @@
 - **015** [[015-topic-auto-promotion-heuristic-for-atlas-compact|Topic auto-promotion heuristic for atlas-compact]] — 2026-05-27 — answered by 036; tags: atlas-compact, topics; cited by 2
 - **017** [[017-cross-skill-code-duplication-threshold-and-consolidation-str|Cross-skill code duplication threshold and consolidation strategy]] — 2026-05-27 — answered by 037; tags: skills, refactor; cited by 1
 
-## Decisions (31)
+## Decisions (32)
 
 - **001** [[001-plain-text-git-as-the-data-layer|Plain text + git as the data layer]] — 2026-05-27 — tags: data-model, infrastructure; cited by 5
 - **003** [[003-split-claude-md-agent-rules-from-project-md-project-backgrou|Split CLAUDE.md (agent rules) from PROJECT.md (project background)]] — 2026-05-27 — tags: docs, agent-onboarding
@@ -26,17 +26,18 @@
 - **022** [[022-roadmap-holds-only-current-milestone-no-up-next-backlog-or-r|Roadmap holds only Current milestone — no Up next, Backlog, or Recently done]] — 2026-05-27 — tags: roadmap, data-model, concurrency
 - **023** [[023-progressive-disclosure-data-layer-title-is-the-menu-body-loa|Progressive-disclosure data layer: title is the menu, body loads on demand]] — 2026-05-28 — tags: data-model, skills, orient, design-principle; cited by 2
 - **024** [[024-triggers-live-where-the-agent-always-sees-them-not-in-skill|Triggers live where the agent always sees them, not in skill bodies]] — 2026-05-28 — tags: skills, triggers, agent-behavior, architecture; cited by 2
-- **025** [[025-distributed-skill-bodies-cite-reasoning-inline-never-this-pr|Distributed skill bodies cite reasoning inline, never this project's entity IDs]] — 2026-05-28 — tags: skills, distribution, hygiene
+- **025** [[025-distributed-skill-bodies-cite-reasoning-inline-never-this-pr|Distributed skill bodies cite reasoning inline, never this project's entity IDs]] — 2026-05-28 — tags: skills, distribution, hygiene; cited by 1
 - **028** [[028-mechanical-affordances-over-prose-constraints-for-agent-rules|Mechanical affordances over prose constraints for agent rules]] — 2026-06-12 — tags: skills, agent-behavior, enforcement, design-principle; cited by 1
 - **029** [[029-framework-generates-no-events-silent-ops-records-ride-work-commits|Framework generates no events: silent ops, records ride work commits]] — 2026-06-12 — tags: skills, ux, transparency, git, agent-behavior
 - **030** [[030-a-record-s-truth-may-not-depend-on-a-future-edit|A record's truth may not depend on a future edit]] — 2026-09-02 — tags: data-model, design-principle; cited by 1
-- **031** [[031-one-counter-for-every-record-type-is-a-mutable-field|One counter for every record; type is a mutable field]] — 2026-09-02 — tags: data-model, entities, schema
+- **031** [[031-one-counter-for-every-record-type-is-a-mutable-field|One counter for every record; type is a mutable field]] — 2026-09-02 — tags: data-model, entities, schema; cited by 1
 - **032** [[032-relations-live-in-the-body-as-obsidian-wikilinks|Relations live in the body as Obsidian wikilinks]] — 2026-09-02 — tags: data-model, schema, links, obsidian
 - **033** [[033-the-journal-is-deleted-findings-become-records|The journal is deleted; findings become records]] — 2026-09-02 — tags: journal, data-model, dogfood
 - **034** [[034-the-session-start-hook-loads-state-directly|The session-start hook loads state directly]] — 2026-09-02 — tags: hooks, session-lifecycle, skills
 - **035** [[035-working-rules-are-un-mechanized-constraints-authored-not-promoted|Working rules are un-mechanized constraints, authored not promoted]] — 2026-09-02 — tags: project-md, decisions, agent-behavior
 - **036** [[036-compact-rewrites-the-memory-set-eviction-is-the-default|Compact rewrites the memory set; eviction is the default]] — 2026-09-02 — tags: atlas-compact, agent-behavior
 - **037** [[037-atlas-ships-as-a-plugin-one-install-unit|Atlas ships as a Claude Code plugin; skills, hook and CLI install as one unit]] — 2026-09-02 — tags: packaging, infrastructure, hooks
+- **038** [[038-identifiers-stay-inside-the-store|Record identifiers stay inside the store; leaked ones are resolved, not rewritten]] — 2026-09-03 — tags: data-model, packaging
 - **002** [[002-skills-user-level-data-project-level-via-symlink-install|Skills user-level, data project-level via symlink install]] — 2026-05-27 — superseded by 037; tags: packaging, infrastructure; cited by 2
 - **004** [[004-three-entity-types-d-e-q-with-shared-base-frontmatter|Three entity types D/E/Q with shared base frontmatter]] — 2026-05-27 — superseded by 031; tags: data-model; cited by 2
 - **005** [[005-multiple-active-journal-entries-allowed-no-single-active-con|Multiple active journal entries allowed (no single-active constraint)]] — 2026-05-27 — superseded by 033; tags: journal, concurrency; cited by 4

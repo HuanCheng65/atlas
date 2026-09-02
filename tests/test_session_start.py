@@ -99,6 +99,18 @@ def test_decisions_in_force_are_listed(project):
     assert "_index.md" in out
 
 
+def test_old_identifiers_are_pointed_at_their_map_only_when_one_exists(project):
+    assert "v1-id-map" not in run(cwd=project).stdout
+
+    archive = project / "docs" / "atlas" / "archive"
+    archive.mkdir(parents=True)
+    (archive / "v1-id-map.tsv").write_text("D-001\t001-a-record\tA record\n",
+                                           encoding="utf-8")
+    out = run(cwd=project).stdout
+    assert "v1-id-map.tsv" in out
+    assert "do not rewrite them" in out
+
+
 def test_superseded_decisions_drop_off(project):
     make(project, "decision", "The old way", "body\n")
     make(project, "decision", "The new way",

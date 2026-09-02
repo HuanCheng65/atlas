@@ -15,7 +15,8 @@ docs/atlas/
 │   ├── _index.md           auto-generated browse view
 │   └── NNN-slug.md
 └── archive/                frozen, superseded layouts kept for grep
-    └── journal/            the pre-record work log
+    ├── journal/            the pre-record work log
+    └── v1-id-map.tsv       pre-v2 identifiers → the records they became
 ```
 
 ## The record store

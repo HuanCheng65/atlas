@@ -17,6 +17,12 @@ ATLAS = Path("docs/atlas")
 RECORDS = ATLAS / "records"
 VERSION_FILE = ATLAS / "VERSION"
 
+# Written once by the v1 migration and kept forever. The migration renumbers
+# every record, and pre-v2 identifiers had escaped into documents the store
+# does not own — project docs, result files, even a script's filename. Those
+# are prose and stay as they are; this table is what keeps them resolvable.
+ID_MAP_FILE = ATLAS / "archive" / "v1-id-map.tsv"
+
 # Bumped by any change that makes a store unreadable to the previous scripts.
 # Without this, new scripts read an old store as an empty one and report
 # success — a 29-entity store validated OK and loaded as no memory at all.

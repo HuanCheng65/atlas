@@ -50,6 +50,16 @@ DROP_FIELDS = [
 # constitution keeps working and Obsidian can follow it.
 PROJECT_POINTER_RE = re.compile(r"\((D-\d{3})\)")
 
+# Tab-separated so `grep '^E-047' <file>` answers the question outright; the
+# title is carried so the answer does not require opening the record.
+ID_MAP_HEADER = (
+    "# Pre-v2 identifiers and the records they became. Kept permanently:\n"
+    "# the migration renumbers, and references written before it survive in\n"
+    "# the archived journal and in documents outside docs/atlas/, which are\n"
+    "# prose and were deliberately not rewritten.\n"
+    "# old\tnew\ttitle\n"
+)
+
 
 class Entity:
     def __init__(self, old_id, path, meta, body):
@@ -256,6 +266,14 @@ def main():
     # was a journal-distillation surface with nothing left to distil.
     for stale in ("_templates", "topics"):
         shutil.rmtree(_lib.ATLAS / stale, ignore_errors=True)
+
+    _lib.ID_MAP_FILE.parent.mkdir(parents=True, exist_ok=True)
+    rows = "".join(
+        f"{oid}\t{stem_map[oid]}\t{entities[oid].meta.get('title', '')}\n"
+        for oid in sorted(entities, key=lambda o: id_map[o])
+    )
+    _lib.atomic_write(_lib.ID_MAP_FILE, ID_MAP_HEADER + rows)
+    print(f"wrote {len(entities)} identifier mappings to {_lib.ID_MAP_FILE}")
 
     journal = _lib.ATLAS / "journal"
     if journal.exists():

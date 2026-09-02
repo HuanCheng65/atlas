@@ -94,6 +94,13 @@ pointers, moves the journal to `docs/atlas/archive/` untouched, and stamps the
 version last, so an interrupted run leaves a store that still says v1 rather
 than one that lies.
 
+It rewrites nothing outside `docs/atlas/` and PROJECT.md. Old identifiers do
+escape into project documents, result files and even script names, and those
+are prose rather than links — rewriting them would edit documents the store
+does not own. `archive/v1-id-map.tsv`, written by the migration and kept
+permanently, is what keeps them answerable: `grep '^E-047' <map>` gives the
+record and its title.
+
 **Run it on a copy first.** The procedure, in order:
 
 1. `migrate_v1_to_v2.py --dry-run` and read the report.

@@ -256,6 +256,29 @@ def test_answered_by_moves_the_edge_onto_the_answerer(old_store):
     assert run(VALIDATE, cwd=old_store).returncode == 0
 
 
+def test_identifier_map_resolves_every_old_reference(old_store):
+    # The migration renumbers, and old identifiers survive in documents the
+    # store does not own. Those stay as prose; this table is what keeps them
+    # answerable.
+    atlas = old_store / "docs" / "atlas"
+    expected = {"-".join(p.name.split("-")[:2])
+                for group in ("decisions", "experiments", "questions")
+                for p in (atlas / group).glob("*.md")}
+    run(MIGRATE, cwd=old_store)
+
+    lines = (atlas / "archive" / "v1-id-map.tsv").read_text(encoding="utf-8").splitlines()
+    rows = [ln.split("\t") for ln in lines if ln and not ln.startswith("#")]
+    assert {row[0] for row in rows} == expected
+    for old, stem, title in rows:
+        assert (records(old_store) / f"{stem}.md").exists(), old
+        assert title.strip(), old
+
+
+def test_dry_run_writes_no_identifier_map(old_store):
+    run(MIGRATE, "--dry-run", cwd=old_store)
+    assert not (old_store / "docs" / "atlas" / "archive").exists()
+
+
 def test_overlong_title_is_reported(old_store):
     path = old_store / "docs" / "atlas" / "decisions" / "D-001-plain-text-and-git.md"
     path.write_text(path.read_text(encoding="utf-8").replace(
