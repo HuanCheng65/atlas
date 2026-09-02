@@ -30,11 +30,16 @@ python3 $S/validate.py            # identity, schema, links, direction
 python3 $S/reindex.py             # regenerate records/_index.md
 python3 $S/new.py --help          # create one record (usually called from using-atlas)
 python3 $S/rename.py 047 new-slug # change a slug and rewrite every link to it
-python3 $S/migrate.py --dry-run   # one-time D/E/Q conversion; report first
+python3 $S/migrate_v1_to_v2.py --dry-run   # one-time conversion; report first
 ```
 
 `new.py` and `rename.py` reindex on their own. Run `validate.py` after any edit
 you made by hand, and always before committing.
+
+Every one of these refuses to run against a store whose `docs/atlas/VERSION`
+does not match the format they read. Take that refusal at face value: an
+unmigrated store is indistinguishable from an empty one, so the alternative to
+refusing is reporting that a project has no memory at all.
 
 ## What validate enforces
 
@@ -77,13 +82,28 @@ one-off question.
 
 ## Migration
 
-`migrate.py` converts a pre-record store: it renumbers by a topological sort of
-the reference graph so every record outranks what it cites, rewrites prose
-`D-007` references as wikilinks, turns `supersedes` and `answered-by` into typed
-edges, drops the derived fields, rewrites PROJECT.md's constitution pointers,
-and moves the journal to `docs/atlas/archive/` untouched.
+A store carries its format version in `docs/atlas/VERSION`; its absence means
+v1, the pre-record layout. One script per version step, named for the step.
 
-Run `--dry-run` first and read the report. Two things it cannot fix on its own,
-because both need judgment: a title over the budget, and a forward reference —
-an older record edited to cite a newer one, which is the pattern the store now
-prevents. Resolve those in the source, then run it for real.
+`migrate_v1_to_v2.py` renumbers by a topological sort of the reference graph so
+every record outranks what it cites, rewrites prose `D-007` references as
+wikilinks, turns `supersedes` and `answered-by` into typed edges — the latter
+onto the record that did the answering, since the old field named it from the
+wrong end — drops the derived fields, rewrites PROJECT.md's constitution
+pointers, moves the journal to `docs/atlas/archive/` untouched, and stamps the
+version last, so an interrupted run leaves a store that still says v1 rather
+than one that lies.
+
+**Run it on a copy first.** The procedure, in order:
+
+1. `migrate_v1_to_v2.py --dry-run` and read the report.
+2. Resolve what it lists. Two things need judgment and it will not guess: a
+   title over the width budget, and a forward reference — an older record
+   edited to cite a newer one, which is the pattern the store now prevents.
+   Fix those in the source files.
+3. Copy the repository, run the migration on the copy, `validate.py` it, and
+   diff the result against the original. Read the diff.
+4. Only then run it in place, as its own commit in that repository.
+
+Step 3 is not ceremony. The migration rewrites every file in the store at
+once, and a store is usually months of work that exists nowhere else.

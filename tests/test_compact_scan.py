@@ -41,6 +41,7 @@ def make(project, rtype, title, body, tags=None, new_tags=None, date=None):
 @pytest.fixture
 def project(tmp_path):
     (tmp_path / "docs" / "atlas").mkdir(parents=True)
+    (tmp_path / "docs" / "atlas" / "VERSION").write_text("2\n", encoding="utf-8")
     (tmp_path / "PROJECT.md").write_text(PROJECT_MD, encoding="utf-8")
     return tmp_path
 

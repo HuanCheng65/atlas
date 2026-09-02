@@ -26,6 +26,7 @@ def main():
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", args.slug):
         sys.exit(f"ERROR: slug {args.slug!r} must be lowercase words joined by hyphens")
 
+    _lib.require_version()
     records = _lib.load_all()
     target = records.get(args.id)
     if target is None:

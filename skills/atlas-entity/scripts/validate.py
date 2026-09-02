@@ -78,6 +78,7 @@ def collect_duplicate_ids():
 
 
 def main():
+    _lib.require_version()
     errors = []
 
     def err(msg):

@@ -87,6 +87,8 @@ def main():
         ap.add_argument(f"--{field}", help=f"experiment {field} — one line")
     args = ap.parse_args()
 
+    _lib.require_version()
+
     body = sys.stdin.read().strip()
     if not body:
         sys.exit("ERROR: the body is the record; pass it on stdin")

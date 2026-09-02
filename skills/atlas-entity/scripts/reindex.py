@@ -27,6 +27,7 @@ TYPE_ORDER = ["memory", "question", "decision", "experiment"]
 
 
 def build():
+    _lib.require_version()
     records = _lib.load_all()
     mentions, edges, _ = links.graph(records)
     state = links.derive_state(records, edges)

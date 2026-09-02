@@ -249,6 +249,14 @@ def main():
     resume = "--resume" in sys.argv[1:]
     if not _lib.ATLAS.exists():
         return
+    complaint = _lib.version_complaint()
+    if complaint:
+        # Exiting would leave the session with no explanation at all. The
+        # payload is what the agent reads, so put the problem in the payload.
+        print(f"<system-reminder>The project's memory could not be loaded: "
+              f"{complaint} Tell the user before doing anything that assumes "
+              f"the project has no history.</system-reminder>")
+        return
     records = _lib.load_all()
     _, edges, _ = links.graph(records)
     state = links.derive_state(records, edges)

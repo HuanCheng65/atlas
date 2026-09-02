@@ -15,6 +15,12 @@ import yaml
 
 ATLAS = Path("docs/atlas")
 RECORDS = ATLAS / "records"
+VERSION_FILE = ATLAS / "VERSION"
+
+# Bumped by any change that makes a store unreadable to the previous scripts.
+# Without this, new scripts read an old store as an empty one and report
+# success — a 29-entity store validated OK and loaded as no memory at all.
+STORE_VERSION = 2
 
 TYPES = ("decision", "experiment", "question", "memory")
 
@@ -78,6 +84,52 @@ def dump_md(meta, body):
         width=10**6,
     )
     return f"---\n{yaml_str}---\n{body}"
+
+
+def store_version():
+    """The store's format version.
+
+    The file only came in with v2, so its absence is v1 rather than a
+    question — there is no version of atlas that wrote a store without it
+    and meant something else.
+    """
+    if not VERSION_FILE.exists():
+        return 1
+    raw = VERSION_FILE.read_text(encoding="utf-8").strip()
+    if not raw.isdigit():
+        raise ValueError(f"{VERSION_FILE} should hold a version number, got {raw!r}")
+    return int(raw)
+
+
+def version_complaint():
+    """The reason these scripts must not read this store, or None if they may.
+
+    Every entry point calls this. A format mismatch has to be loud: read as
+    data, an unmigrated store looks exactly like an empty one, and an empty
+    store is a perfectly plausible thing to have.
+    """
+    if not ATLAS.exists():
+        return None
+    found = store_version()
+    if found == STORE_VERSION:
+        return None
+    if found > STORE_VERSION:
+        return (f"{ATLAS} is v{found} and these scripts read v{STORE_VERSION} — "
+                f"the store was written by a newer atlas. Update the skills.")
+    if found == 1:
+        return (f"{ATLAS} has no VERSION file, so it is a pre-record store (v1) and "
+                f"these scripts read v{STORE_VERSION}. Run "
+                f"atlas-entity/scripts/migrate_v1_to_v2.py --dry-run first; reading "
+                f"it as-is would report an empty store. If the store is genuinely "
+                f"empty, run atlas-init to stamp it instead.")
+    return (f"{ATLAS} is v{found} and these scripts read v{STORE_VERSION}. "
+            f"Run the migration for that step.")
+
+
+def require_version():
+    complaint = version_complaint()
+    if complaint:
+        raise SystemExit(f"ERROR: {complaint}")
 
 
 def display_width(text):

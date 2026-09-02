@@ -20,6 +20,15 @@ copy_if_missing() {
 echo "atlas: ensuring $TARGET skeleton"
 mkdir -p "$TARGET/records"
 
+# Stamps the store's format version. Without it, scripts from a later atlas
+# read this store as an empty one and report success.
+if [ ! -e "$TARGET/VERSION" ]; then
+    echo 2 > "$TARGET/VERSION"
+    echo "atlas:   create $TARGET/VERSION"
+else
+    echo "atlas:   skip $TARGET/VERSION (exists)"
+fi
+
 copy_if_missing "$REPO_DIR/templates/README.md"  "$TARGET/README.md"
 copy_if_missing "$REPO_DIR/templates/ROADMAP.md" "$TARGET/ROADMAP.md"
 

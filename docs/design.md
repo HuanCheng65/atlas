@@ -182,6 +182,24 @@ This is what replaced the journal's "close" ritual. There is no observable
 moment when a session ends, so anything scheduled for one does not happen; a
 commit, by contrast, is an event that already exists in the workflow.
 
+### Format versions
+
+`docs/atlas/VERSION` holds a number; its absence means v1, the pre-record
+layout, since the file only came in with v2. Every entry point checks it and
+refuses a store it does not match.
+
+The check exists because the failure it prevents is silent. Read by v2 scripts,
+a v1 store has no `records/` directory, so it loads as zero records: validate
+reported OK on a store holding twenty-nine entities, and the session-start
+payload told the agent the project had no memory at all. Both are plausible
+states for a new project, which is what makes the wrong answer dangerous.
+
+One migration script per version step, named for the step
+(`migrate_v1_to_v2.py`), stamping the new version last so an interrupted run
+leaves a store that still declares the old one. There is no migration runner
+and no chain: one migration does not justify a framework, and the shape the
+second one wants will be obvious when it exists.
+
 ### Archive
 
 `docs/atlas/archive/` holds superseded layouts verbatim — currently the

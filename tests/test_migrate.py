@@ -14,7 +14,7 @@ import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "skills" / "atlas-entity" / "scripts"
-MIGRATE = SCRIPTS / "migrate.py"
+MIGRATE = SCRIPTS / "migrate_v1_to_v2.py"
 VALIDATE = SCRIPTS / "validate.py"
 
 PROJECT_MD = """\
@@ -139,6 +139,34 @@ def frontmatter(path):
 
 def body(path):
     return path.read_text(encoding="utf-8").split("---", 2)[2]
+
+
+def test_scripts_refuse_an_unmigrated_store(old_store):
+    # The failure this guards against is silent: read as v2, a v1 store looks
+    # exactly like an empty one, and validate reported OK on 29 entities.
+    proc = run(VALIDATE, cwd=old_store)
+    assert proc.returncode != 0
+    assert "pre-record store (v1)" in proc.stderr
+    assert "migrate_v1_to_v2.py" in proc.stderr
+
+
+def test_migration_stamps_the_version(old_store):
+    run(MIGRATE, cwd=old_store)
+    assert (old_store / "docs" / "atlas" / "VERSION").read_text().strip() == "2"
+
+
+def test_migration_refuses_to_run_twice(old_store):
+    run(MIGRATE, cwd=old_store)
+    proc = run(MIGRATE, cwd=old_store)
+    assert proc.returncode != 0
+    assert "already v2" in proc.stderr
+
+
+def test_a_newer_store_is_refused_too(old_store):
+    (old_store / "docs" / "atlas" / "VERSION").write_text("99\n", encoding="utf-8")
+    proc = run(VALIDATE, cwd=old_store)
+    assert proc.returncode != 0
+    assert "written by a newer atlas" in proc.stderr
 
 
 def test_migration_produces_a_valid_store(old_store):

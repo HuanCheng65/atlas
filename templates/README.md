@@ -8,6 +8,7 @@ rules for writing to it.
 
 ```
 docs/atlas/
+├── VERSION                 the store's format version; absent means v1
 ├── ROADMAP.md              current milestone (one section only)
 ├── plan.md                 the plan for the work in hand; overwritten, not a record
 ├── records/                everything remembered, one counter for all types
@@ -52,6 +53,11 @@ Four types, with `type` an ordinary field that can be corrected later:
   deterministic. Do not hand-edit. The agent reads records, not the index.
 - **Atlas changes ride the work unit's own commits** — no standalone "update
   atlas docs" commits unless the records are themselves the work.
+- **The store declares its format.** `VERSION` holds a number, and every script
+  refuses a store it does not match. This is not pedantry: an unmigrated store
+  reads as an empty one, so without the check a project with months of memory
+  loads as having none, and validate agrees. One migration script per version
+  step, named for the step; run it on a copy and diff before applying.
 
 ## Operations
 

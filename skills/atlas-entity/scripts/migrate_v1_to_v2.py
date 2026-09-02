@@ -189,6 +189,12 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
+    # The one script that must not call require_version: it is what fixes the
+    # mismatch. It asserts the opposite instead.
+    found = _lib.store_version()
+    if found != 1:
+        sys.exit(f"ERROR: {_lib.ATLAS} is already v{found} — this migration is v1 to v2")
+
     entities = load_old()
     if not entities:
         sys.exit("ERROR: no D/E/Q entities found — nothing to migrate")
@@ -257,6 +263,10 @@ def main():
         archive.mkdir(parents=True, exist_ok=True)
         shutil.move(str(journal), str(archive / "journal"))
         print(f"\njournal archived to {archive / 'journal'} unchanged")
+
+    # Stamped last: until it is written the store is still v1, so an
+    # interrupted run leaves a store that says so rather than one that lies.
+    _lib.atomic_write(_lib.VERSION_FILE, f"{_lib.STORE_VERSION}\n")
 
     import reindex  # noqa: E402  (same dir, path set above)
     reindex.build()

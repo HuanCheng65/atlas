@@ -48,6 +48,7 @@ def neighbourhood(rid, mentions, incoming):
 
 
 def main():
+    _lib.require_version()
     records = _lib.load_all()
     if not records:
         print("no records")
