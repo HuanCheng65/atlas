@@ -77,6 +77,12 @@ anyone going back to edit it.
 when it was written. Memory records are the exception: they hold what is
 currently true, are rewritten in place, and git keeps their history.
 
+Get the target's filename exactly right. Links resolve by filename and nothing
+else, so a mistyped slug is not a broken link that surfaces later — it is a
+relation that never happens, leaving the record it should have superseded
+standing. A hook checks the store after every write and will tell you; treat
+that as the error it is rather than as a lint.
+
 ## When to write
 
 | moment | what to write |

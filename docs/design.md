@@ -88,8 +88,10 @@ Atlas composes the parts that work into a small, opinionated framework.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Session-start hook (plugin: hooks/hooks.json)           │
-│  session_start.py — loads state straight into context    │
+│  Hooks (plugin: hooks/hooks.json)                        │
+│  SessionStart  session_start.py — state into context     │
+│  PostToolUse   store_guard.py   — validate + reindex     │
+│                                   after any store write  │
 └────────────────────────┬─────────────────────────────────┘
                          │
 ┌────────────────────────▼─────────────────────────────────┐
@@ -342,6 +344,14 @@ pick the form — the agent and user do, per task.
   user edits intact.
 - **`atlas-init --research / --dev` flags** — deferred. One template
   fits both for now; revisit when real friction shows up.
+- **Checking links inside the record-writing script** — rejected. It guards
+  the narrowest and most careful write path while missing every dangerous
+  one: memory records are rewritten in place, typed edges are appended to
+  published records, and consolidation rewrites the memory set, all as
+  ordinary edits. The check belongs after the fact, over the whole store, on
+  anything that could have written to it. This became possible only once
+  hooks shipped with the code; before that, installing one meant asking the
+  user to hand-edit their settings.
 - **Marketplace distribution** — deferred. Packaging and distribution are
   separable: the plugin format is worth adopting for the hook and the path
   variables alone, and a marketplace adds a cached copy plus an update step

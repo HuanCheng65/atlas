@@ -33,8 +33,10 @@ python3 $S/rename.py 047 new-slug # change a slug and rewrite every link to it
 python3 $S/migrate_v1_to_v2.py --dry-run   # one-time conversion; report first
 ```
 
-`new.py` and `rename.py` reindex on their own. Run `validate.py` after any edit
-you made by hand, and always before committing.
+`new.py` and `rename.py` reindex on their own, and a `PostToolUse` hook runs
+validate and reindex after any tool call that changed the store, so a hand edit
+is checked without anyone remembering to. Run `validate.py` yourself only to
+re-read a complaint or to confirm a fix; its output is the same either way.
 
 Every one of these refuses to run against a store whose `docs/atlas/VERSION`
 does not match the format they read. Take that refusal at face value: an
