@@ -13,8 +13,9 @@ than in the user's CLAUDE.md.
 Must be run from the project root; prints nothing if there is no store.
 """
 import re
+import subprocess
 import sys
-from datetime import date, datetime, timedelta
+from collections import Counter
 from pathlib import Path
 
 # _lib and links belong to the record layer. Importing the siblings beats a
@@ -25,14 +26,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "atlas-entity" / "s
 import _lib  # noqa: E402
 import links  # noqa: E402
 
-RECENT_DAYS = 14
-
 REMINDER = (
     "<system-reminder>This project uses atlas. Invoke the `using-atlas` skill "
     "before responding, so the rules for writing records are in context when "
     "you need them. The state below is already loaded — do not re-read it."
     "</system-reminder>"
 )
+
+# Above this, the last commit is a bulk change rather than a work unit.
+MAX_WIP = 10
 
 # Violating these is costly, so they are inlined rather than named. Everything
 # else in PROJECT.md is listed as a menu the agent opens on demand.
@@ -78,13 +80,6 @@ def first_sentence(text, cap=220):
     return sent if len(sent) <= cap else sent[:cap - 1].rstrip() + "…"
 
 
-def parse_day(value):
-    try:
-        return datetime.strptime(str(value)[:10], "%Y-%m-%d").date()
-    except (ValueError, TypeError):
-        return None
-
-
 def render_project(out):
     project_md = read("PROJECT.md")
     if project_md is None:
@@ -126,39 +121,75 @@ def render_roadmap(out):
     out.append("")
 
 
+def touched_records(records):
+    """Records the working tree has changed, plus those in the last commit.
+
+    This is what replaced the journal's list of entries in flight, and it is
+    derived rather than declared: an uncommitted record is by definition a
+    draft, which is by definition the work in hand. A date window cannot say
+    that — it reports whatever happened to be written recently, and goes
+    empty the moment work pauses.
+    """
+    def paths(*args):
+        try:
+            proc = subprocess.run(args, capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.SubprocessError):
+            return []
+        if proc.returncode != 0:
+            return []
+        return proc.stdout.splitlines()
+
+    names = set()
+    # `-uall` because the default collapses a wholly untracked directory into
+    # one entry, which is exactly the shape of a store on its first day.
+    for line in paths("git", "status", "--porcelain", "-uall", "--", str(_lib.RECORDS)):
+        names.add(line[3:].strip().split(" -> ")[-1])
+    names.update(paths("git", "log", "-1", "--name-only", "--pretty=format:",
+                       "--", str(_lib.RECORDS)))
+
+    stems = {Path(n).stem for n in names if n.endswith(".md")}
+    return sorted((r for r in records.values() if r.stem in stems), key=lambda r: r.id)
+
+
 def render_records(out, records, state):
     memory = sorted((r for r in records.values() if r.type == "memory"),
                     key=lambda r: r.id)
     out.append(f"## Constraints in force ({len(memory)})")
-    if memory:
-        # The whole always-loaded budget: one line each, body on demand.
-        out += [f"- [[{r.stem}]] {r.title}" for r in memory]
-    else:
-        out.append("*(none recorded)*")
+    # The whole always-loaded budget: one line each, body on demand.
+    out += [f"- {r.id:03d} {r.title}" for r in memory] or ["*(none recorded)*"]
     out.append("")
 
     open_qs = sorted((r for r in records.values()
                       if r.type == "question" and r.id not in state),
                      key=lambda r: r.id)
     out.append(f"## Open questions ({len(open_qs)})")
-    out += [f"- [[{r.stem}]] {r.title} — {r.meta.get('date', '?')}" for r in open_qs] \
-        or ["*(none)*"]
+    out += [f"- {r.id:03d} {r.title}" for r in open_qs] or ["*(none)*"]
     out.append("")
 
-    cutoff = date.today() - timedelta(days=RECENT_DAYS)
-    recent = sorted((r for r in records.values()
-                     if r.type != "memory" and (parse_day(r.meta.get("date")) or date.min) >= cutoff),
-                    key=lambda r: (r.meta.get("date", ""), r.id), reverse=True)
-    out.append(f"## Recent records, last {RECENT_DAYS} days ({len(recent)})")
-    if recent:
-        for r in recent:
-            standing = state.get(r.id)
-            mark = f" — {standing[0]}" if standing else ""
-            out.append(f"- **{r.id:03d}** [[{r.stem}]] {r.title} — {r.meta.get('date', '?')}"
-                       f" — {r.type}{mark}")
-    else:
-        out.append("*(none — nothing landed recently)*")
-    out.append("")
+    touched = touched_records(records)
+    if touched:
+        out.append(f"## Work in progress ({len(touched)})")
+        if len(touched) > MAX_WIP:
+            # A commit touching this many records is a migration or a bulk
+            # rewrite, not a work unit — listing it is noise, not continuity.
+            out.append(f"*The last commit touched {len(touched)} records in bulk; "
+                       f"see `git show --stat`.*")
+        else:
+            out.append("*Uncommitted records, and what the last commit touched.*")
+            for r in touched:
+                standing = state.get(r.id)
+                mark = f", {standing[0]}" if standing else ""
+                out.append(f"- {r.id:03d} {r.title} — {r.type}{mark}")
+        out.append("")
+
+    counts = Counter(r.type or "untyped" for r in records.values())
+    breakdown = ", ".join(f"{n} {t}{'s' if n != 1 else ''}"
+                          for t, n in sorted(counts.items(), key=lambda kv: -kv[1]))
+    total = f"{len(records)} record" + ("s" if len(records) != 1 else "")
+    out.append(f"*{total} — {breakdown}. Decisions and experiments are "
+               f"an archive consulted on demand, not listed here: Read "
+               f"`{_lib.RECORDS}/_index.md` for the full menu, or open one directly at "
+               f"`{_lib.RECORDS}/NNN-*.md` when a title above is the one you need.*")
 
 
 def main():
@@ -176,8 +207,6 @@ def main():
     render_project(out)
     render_roadmap(out)
     render_records(out, records, state)
-    out.append(f"*{len(records)} records in docs/atlas/records/. "
-               f"Titles are the menu; open a record for its body.*")
     print("\n".join(out))
 
 
