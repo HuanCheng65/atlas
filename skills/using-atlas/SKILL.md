@@ -156,11 +156,35 @@ Record changes are part of the work unit they describe. Stage them with the
 work's own commit; the message names the content, never the framework. A
 records-only commit is legitimate only when the records are themselves the work.
 
+## Work units, and two moments to recognise
+
+A work unit's intent, spec and plan live in one file under `docs/atlas/work/`,
+written by `grill-me`. The file is written once and not edited afterwards, so
+it remains a true account of what was undertaken. The store holds what outlives
+it: a constraint, an architecturally significant choice, a measurement, an open
+question.
+
+Two moments during ordinary work carry no announcement, and recognising them is
+your responsibility.
+
+- **A check is about to be written** — a test, an eval, a threshold. Name the
+  source of its verdict: a reference implementation, an invariant, data whose
+  answers are known independently, a recorded failure, values the user gave. If
+  the source is the code under test, say so; that is a characterization test,
+  correct for detecting change and misleading as a correctness check. A check
+  with no named source is decoration.
+- **The change reaches something expensive to unmake** — data already stored in
+  the shape being changed, callers already on the interface, an assumption that
+  there is exactly one of something, a boundary you do not control. Invoke
+  `grill-me` then, even though work has started, and settle the representation
+  before writing more code.
+
 ## Routing
 
 | user signal | skill |
 |---|---|
 | non-trivial work about to start | `atlas:grill-me` |
+| mid-work, the change reaches something expensive to unmake | `atlas:grill-me` |
 | list / search / audit records, or a bulk record operation | `atlas:atlas-entity` |
 | "clean up the store", memory over budget | `atlas:atlas-compact` |
 | setting a project up on atlas — starting one, or onboarding one that exists | `atlas:atlas-bootstrap` |

@@ -1,6 +1,6 @@
 ---
 name: atlas-compact
-description: Maintenance pass over the record store under docs/atlas/records/. Two jobs — consolidating the memory records, whose one-line titles are loaded into every session and therefore have a budget, and reviewing the store for records that have quietly stopped being true. Use WHEN the user asks to clean up or review the store, or when the memory budget is exceeded. Runs end-to-end WITHOUT per-item confirmation; safety comes from bounded writes, validate gating, and landing the run as one revertable commit. Not for onboarding. Never run in the background.
+description: Periodic maintenance pass. Three jobs — consolidating the memory records, whose one-line titles are loaded into every session and therefore have a budget; reviewing the store for records that have quietly stopped being true; and reading the scope of recent changes in the repository, which is where a bad module boundary shows up. Use WHEN the user asks to clean up or review the store, when the memory budget is exceeded, or periodically. The first two jobs run end-to-end WITHOUT per-item confirmation; safety comes from bounded writes, validate gating, and landing the run as one revertable commit. The third reports and does not edit code. Not for onboarding. Never run in the background.
 ---
 
 # Atlas Compact
@@ -68,6 +68,29 @@ are candidates and not actions.
   renumbered. Rewrite the sentence to say what was decided; do not replace the
   link with a longer reference. If the document is an archived one, leave it —
   it was true when it was written.
+
+## Job three: read the scope of recent changes
+
+The other two jobs look at the store. This one looks at the repository. A module
+boundary in the wrong place does not announce itself: the cost is paid as a
+change that should have been small touching many files, which nobody notices the
+way they notice a slow build. So it is measured.
+
+The scan ends with two readings over the last thirty commits:
+
+- **Files per commit.** A wide commit is either a migration, which is fine, or
+  a change whose scope escaped, which is not. The subject line usually says
+  which.
+- **Files that change together.** A pair that nearly always moves as one is
+  usually one fact stated in two places, so every change to it must be made
+  twice. The healthy exception is a test and its subject — that pair *should*
+  move together, and seeing it is the signal working, not a finding.
+
+**This job reports; it does not edit code.** Refactoring is work with its own
+intent and belongs in its own work unit. What compact may do is write what it
+found: a `question` record when the pattern is real but the fix is not obvious,
+and a plain sentence to the user when it is. Say what changes together and what
+that costs, not the percentages.
 
 ## Finishing
 

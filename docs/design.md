@@ -106,7 +106,7 @@ Atlas composes the parts that work into a small, opinionated framework.
 │  Data layer (per-project: <project>/docs/atlas/)         │
 │  ──────────────────────────────────────────────────      │
 │  ROADMAP.md                records/NNN-slug.md           │
-│  plan.md                     └── _index.md               │
+│  work/<date>-<slug>.md       └── _index.md               │
 │  archive/                                                │
 └──────────────────────────────────────────────────────────┘
                          ▲
@@ -219,13 +219,26 @@ pre-record journal. Frozen, still grep-able, never migrated. Bulk-converting
 old material into the live store would only refill the inbox the redesign
 emptied.
 
-### Plans
+### Work units
 
-`docs/atlas/plan.md` holds the plan for the work in hand, written by
-`grill-me` and overwritten per work unit. It is deliberately not a record: a
-plan describes intent, and the store holds what happened. Where intent, spec
-and implementation should live relative to each other is an open question,
-and this file is a placeholder, not an answer.
+`docs/atlas/work/<date>-<slug>.md` holds one work unit's intent, spec and
+plan. It is written once by `grill-me` and not edited afterwards, which is
+what lets it be committed: it is a dated account of what was undertaken, and
+that stays true however the code moves.
+
+The file it replaced, `plan.md`, was a single path overwritten by every work
+unit in turn. That is a committed file whose truth holds only while one
+particular piece of work is in flight, and it went stale for ten commits
+before anyone noticed. The defect was the reuse of one path, not the keeping
+of plans.
+
+It is not the journal returning. The journal died of a work log that grew by
+appending and a `status` field that needed someone to come back and change
+it; a work unit file has neither, and nothing in it has to be closed.
+
+What outlives the work unit goes to the store: a constraint nothing enforces,
+a choice that is architecturally significant, a measurement, an open
+question. A choice that is only how this task got done stays in the spec.
 
 ## Skill activation patterns
 
@@ -242,7 +255,9 @@ described in its SKILL.md. The typical activation timeline for a task:
    using-atlas               ← the rules for writing records
        │
        ▼
-   grill-me (non-trivial work)  → docs/atlas/plan.md
+   grill-me (non-trivial work)  → docs/atlas/work/<date>-<slug>.md
+       │                          also mid-work, when the change turns out to
+       │                          touch something expensive to unmake
        │
        ▼
    work proceeds; records are written at the events that produce them:
@@ -367,10 +382,11 @@ pick the form — the agent and user do, per task.
 
 ## Open design questions
 
-- **Where intent lives.** `plan.md` is a placeholder. Plans, specs and
-  intent are a different problem from memory — the store holds what
-  happened, and nothing here says how the thing you meant to build should be
-  written down or kept in step with what got built.
+- **Whether decisions still belong in the session-start payload.** They are
+  listed there because a decision is architecturally significant or it is not
+  a decision, so the set stays small. Now that memory records carry the
+  constraints that must be restated, the decision list may be paying for a
+  menu nobody opens.
 - **Multi-machine sync.** Two machines writing records in parallel will
   claim the same number. Git surfaces that as a conflict rather than losing
   a record, but renumbering on merge is manual.

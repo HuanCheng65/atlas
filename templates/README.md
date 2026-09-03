@@ -10,7 +10,8 @@ rules for writing to it.
 docs/atlas/
 ├── VERSION                 the store's format version; absent means v1
 ├── ROADMAP.md              current milestone (one section only)
-├── plan.md                 the plan for the work in hand; overwritten, not a record
+├── work/                   one file per work unit: its intent, spec and plan
+│   └── YYYY-MM-DD-slug.md  written once, not edited afterwards
 ├── records/                everything remembered, one counter for all types
 │   ├── _index.md           auto-generated browse view
 │   └── NNN-slug.md
@@ -18,6 +19,22 @@ docs/atlas/
     ├── journal/            the pre-record work log
     └── v1-id-map.tsv       pre-v2 identifiers → the records they became
 ```
+
+## Work units
+
+One file per work unit under `work/`, holding Intent, Spec and Plan, written
+once by `grill-me` and not edited afterwards. That is what makes it safe to
+commit: it is a dated account of what was undertaken, which stays true however
+the code moves. There is no work log, no status, and nothing to close.
+
+The Spec names the representation the work settled on, when it needed one, and
+gives each check the source of its verdict — a reference implementation, an
+invariant, data whose answers are known independently, a failure that happened,
+values the user gave. A check whose only source is the code under test is a
+characterization test and must say so.
+
+What outlives the work unit goes to the store. What is only how this task got
+done stays in the Spec.
 
 ## The record store
 

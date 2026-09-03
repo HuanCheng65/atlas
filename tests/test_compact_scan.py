@@ -4,6 +4,7 @@ The scan exists so a compact run reads a shortlist instead of the store, so
 what matters is that each signal reports exactly the records it should and
 stays quiet otherwise.
 """
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -142,3 +143,82 @@ def test_the_store_and_the_constitution_are_not_leaks(project):
 
 def test_empty_store_says_so(project):
     assert "no records" in run(SCAN, cwd=project).stdout
+
+
+# --- the scope of recent changes -------------------------------------------
+#
+# This reading is about the repository, not the store: a seam in the wrong
+# place is paid for as a small change touching many files, and nobody notices
+# that the way they notice a slow build. The fixtures below have a commit shape
+# counted by hand, so the expected numbers do not come from the code under test.
+
+def commit(project, subject, **files):
+    env = {**os.environ,
+           "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    for name, text in files.items():
+        path = project / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    for command in (["add", "-A"], ["commit", "-qm", subject, "--no-verify"]):
+        subprocess.run(["git", *command], cwd=project, capture_output=True,
+                       check=True, env=env)
+
+
+def scope_section(project, heading):
+    return run(SCAN, cwd=project).stdout.split(heading)[1].split("##")[0]
+
+
+@pytest.fixture
+def repo(project):
+    make(project, "decision", "A settled choice", "body\n", new_tags="scale")
+    subprocess.run(["git", "init", "-q"], cwd=project, capture_output=True,
+                   check=True)
+    return project
+
+
+def test_a_wide_commit_is_named_by_its_subject(repo):
+    commit(repo, "narrow change", **{"a.py": "1\n"})
+    commit(repo, "sprawling rewrite",
+           **{f"mod{n}.py": "x\n" for n in range(9)})
+
+    section = scope_section(repo, "## The scope of the last")
+    assert "9 files: " in section
+    assert "sprawling rewrite" in section
+    assert "narrow change" not in section
+
+
+def test_files_that_always_move_together_are_reported(repo):
+    for n in range(5):
+        commit(repo, f"paired {n}",
+               **{"reader.py": f"{n}\n", "writer.py": f"{n}\n"})
+    for n in range(5):
+        commit(repo, f"lone {n}", **{"unrelated.py": f"{n}\n"})
+
+    section = scope_section(repo, "## Files that change together")
+    assert "`reader.py` + `writer.py`" in section
+    assert "unrelated.py" not in section
+
+
+def test_a_pair_below_the_threshold_stays_quiet(repo):
+    # Two commits together is a coincidence, not a coupling.
+    for n in range(2):
+        commit(repo, f"paired {n}",
+               **{"reader.py": f"{n}\n", "writer.py": f"{n}\n"})
+    for n in range(4):
+        commit(repo, f"reader only {n}", **{"reader.py": f"solo{n}\n"})
+
+    assert "*(none)*" in scope_section(repo, "## Files that change together")
+
+
+def test_the_store_does_not_count_as_coupling(repo):
+    # Records changing alongside the code they describe is the design working.
+    for n in range(5):
+        commit(repo, f"work {n}", **{
+            "reader.py": f"{n}\n",
+            f"docs/atlas/records/{n + 900}-a-note.md":
+                f"---\nid: {n + 900}\ntitle: A note\ndate: 2026-01-01\n"
+                f"type: decision\ntags: [scale]\n---\n\nbody\n",
+        })
+
+    assert "*(none)*" in scope_section(repo, "## Files that change together")

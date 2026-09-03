@@ -32,6 +32,15 @@ MEMORY_BUDGET = 40
 QUIET_DAYS = 120
 OVERLAP_THRESHOLD = 0.5
 
+# The scope of a change is the readable form of "does a requirement map to a
+# bounded edit". Nobody feels the interest on this the way a developer feels a
+# slow build, so it is measured rather than noticed.
+CHANGE_WINDOW = 30
+WIDE_CHANGE = 8
+COUPLING_MIN = 5
+COUPLING_RATIO = 0.6
+COUPLING_SHORTLIST = 8
+
 # A backticked path with a directory separator and an extension: specific
 # enough that a false positive is rare and a real dead reference is caught.
 PATH_RE = re.compile(r"`([\w./-]+/[\w.-]+\.\w{1,6})`")
@@ -70,6 +79,59 @@ def leaked_links():
             if _lib.STEM_RE.match(stem.strip()):
                 found[str(path)].add(stem.strip())
     return found
+
+
+def recent_changes(window=CHANGE_WINDOW):
+    """Files touched per commit, over the last `window` commits.
+
+    The store's own files are excluded. Records changing alongside the code
+    they describe is the design working, not coupling.
+    """
+    listed = subprocess.run(
+        ["git", "log", f"-n{window}", "--no-merges", "--name-only",
+         "--format=\x01%h %s"],
+        capture_output=True, text=True)
+    if listed.returncode != 0:
+        return []
+
+    commits = []
+    for line in listed.stdout.splitlines():
+        if line.startswith("\x01"):
+            commits.append((line[1:], set()))
+        elif line.strip() and commits:
+            path = Path(line.strip())
+            if _lib.ATLAS not in path.parents and path != Path("PROJECT.md"):
+                commits[-1][1].add(line.strip())
+    return [(subject, files) for subject, files in commits if files]
+
+
+def coupled_files(commits):
+    """Pairs that nearly always change together.
+
+    A pair like this is one decision spread across two places: the fact they
+    share is stated twice, so every change to it has to be made twice.
+    """
+    appearances = defaultdict(int)
+    together = defaultdict(int)
+    for _, files in commits:
+        listing = sorted(files)
+        for name in listing:
+            appearances[name] += 1
+        for i, a in enumerate(listing):
+            for b in listing[i + 1:]:
+                together[(a, b)] += 1
+
+    found = []
+    for (a, b), n in together.items():
+        if n < COUPLING_MIN:
+            continue
+        # Over the union, not over the smaller of the two: dividing by the
+        # smaller count scores every rare file that happened to ride along with
+        # a file which changes constantly, which is most of them.
+        ratio = n / (appearances[a] + appearances[b] - n)
+        if ratio >= COUPLING_RATIO:
+            found.append((ratio, n, a, b))
+    return sorted(found, reverse=True)[:COUPLING_SHORTLIST]
 
 
 def neighbourhood(rid, mentions, incoming):
@@ -167,6 +229,28 @@ def main():
             counts[tag] += 1
     singletons = sorted(t for t, n in counts.items() if n == 1)
     print(", ".join(singletons) if singletons else "*(none)*")
+    print()
+
+    commits = recent_changes()
+    print(f"## The scope of the last {len(commits)} changes")
+    if commits:
+        sizes = sorted(len(files) for _, files in commits)
+        print(f"median {sizes[len(sizes) // 2]} files per commit, "
+              f"widest {sizes[-1]}")
+        wide = [(len(files), subject) for subject, files in commits
+                if len(files) > WIDE_CHANGE]
+        for count, subject in sorted(wide, reverse=True):
+            print(f"- {count} files: {subject}")
+    else:
+        print("*(no history)*")
+    print()
+
+    print("## Files that change together")
+    coupled = coupled_files(commits)
+    for ratio, n, a, b in coupled:
+        print(f"- {ratio:.0%} of the time ({n}×): `{a}` + `{b}`")
+    if not coupled:
+        print("*(none)*")
 
 
 if __name__ == "__main__":
