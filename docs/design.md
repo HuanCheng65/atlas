@@ -31,6 +31,15 @@ Atlas composes the parts that work into a small, opinionated framework.
 
 ## Design principles
 
+Every session starts with no memory of the project: an engineer who has read
+the code and met no one. Software engineering already has practice for that
+condition, from high-turnover teams, outsourced work, and one-off
+contributions to a project the contributor does not follow. What works there
+is written convention, tests that document behaviour by running, small
+interfaces, and recorded rationale. What does not is oral tradition and asking
+whoever wrote it. The principles below follow from that, and any mechanism
+depending on someone remembering is void here.
+
 1. **Data and skills are separate.** Skills (capability) live at user-level
    (`~/.claude/skills/`); data (state) lives at project-level
    (`docs/atlas/`). One install, many projects. Everything machine-level —
@@ -38,9 +47,9 @@ Atlas composes the parts that work into a small, opinionated framework.
    can be installed while another is silently missing.
 2. **Plain text + git.** No SQLite, no vector DB. Markdown with YAML
    frontmatter is the only data format.
-3. **Append-only events, maintained views.** Journal entries are mutable
-   until committed and superseded rather than edited afterwards. Indexes
-   and standing are derived views, recomputed on read.
+3. **Append-only events, derived views.** A record is mutable until
+   committed, and superseded rather than edited afterwards. Indexes and
+   standing are computed on read.
 4. **One domain, one skill.** Each cognitive domain gets one skill;
    deterministic operations live in scripts inside that skill.
 5. **Scripts for the deterministic, prompts for the judgment.** Number
@@ -48,8 +57,10 @@ Atlas composes the parts that work into a small, opinionated framework.
    scripts. Whether something is worth a record at all: agent reasoning.
 6. **Schema enforced, not implied.** `validate.py` is the schema — there
    are no templates to drift out of sync with it.
-7. **Verification declared, not TDD enforced.** Every task must declare
-   how completion is checked, with kept vs discarded artifacts classified.
+7. **Verification declared, with its source named.** Every task declares how
+   completion is checked, and each check names where its verdict comes from.
+   The form is free; a verdict taken from the code under test must say so.
+   Artifacts are kept only against a named failure or invariant.
 8. **Event-driven, not phase-driven.** There is no observable "session
    end", so nothing is scheduled for one. Records are written at events
    that actually occur: a measurement completes, a constraint is hit, a
@@ -283,25 +294,26 @@ and its first milestone and no records, because nothing has happened yet to
 have decided. Running `atlas-init` alone is possible but leaves PROJECT.md on
 the template, and that file is loaded into every session.
 
-## Verification: Keepers vs Throwaways
+## Verification
 
-Every plan produced by `grill-me` must declare:
+Every work unit declares how the task will be checked complete, and each check
+names the source of its verdict: a reference implementation, an invariant, data
+whose answers are known independently, a recorded failure, or values the user
+specified. A verdict taken from the code under test is a characterization test
+and must say so — correct for detecting change, misleading as a correctness
+check. A check with no named source is decoration.
 
-- **Verification** — how this task will be checked complete (unit test,
-  reference comparison, eval set, manual checklist, ...)
-- **Keepers (proposed)** — verification artifacts likely to become
-  long-term regression assets
-- **Throwaways (proposed)** — development-time scaffolds to delete after merge
+The bar is on the source, not the form. Unit tests, reference comparison, eval
+sets, manual checklists and measured thresholds all qualify. Kernel work uses
+reference comparison, LLM applications use eval sets, business logic uses unit
+tests; atlas does not pick.
 
-Both lists are proposed at planning time and settled at the commit — what
-seemed throwaway may turn out worth keeping, and vice versa.
-
-This addresses the observed failure of AI-written tests (surface-level
-scaffolds that pass once and clutter the repo forever) while preserving
-discipline (no plan ships without a declared completion bar). The form
-of verification varies by task: kernel work uses reference-impl comparison,
-LLM apps use eval sets, business logic uses unit tests. Atlas does not
-pick the form — the agent and user do, per task.
+Artifacts are then classified. A **Keeper** corresponds to a specific failure
+that occurred or an invariant stated somewhere. Everything else is a
+**Throwaway** and is deleted with the scaffolding. The criterion replaces a
+per-task judgment that was routinely skipped, and it is what makes the rule bite
+on the observed failure of AI-written tests: a scaffold that passes once
+corresponds to no failure and therefore does not survive.
 
 ## Trade-offs and rejected alternatives
 
