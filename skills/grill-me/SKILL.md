@@ -1,6 +1,6 @@
 ---
 name: grill-me
-description: Use this skill BEFORE starting non-trivial work. Interview the user one question at a time, walking down the decision tree, until shared understanding is reached; propose your recommended answer with every question so the user reviews instead of answering from blank. Use WHENEVER the user describes a feature, task, design, refactor, or experiment — seeming clarity is not a skip reason; underspecified edges are. Use ALSO mid-work, whenever it emerges that the change touches something expensive to unmake — a stored data shape, an interface others call, an assumption that there is exactly one of something. SKIP only when the task is trivial (one-line fix, formatting, copy-paste edit), when the user hands over a complete written plan for execution, when the user explicitly says "skip planning" / "just do it", or when the project is being onboarded (atlas-bootstrap has its own interview). Writes one design document per round under docs/atlas/design/: what the round decided, and what it left open.
+description: Use this skill BEFORE starting non-trivial work. Interview the user in rounds — each round asking together every question whose prerequisites are already settled — until shared understanding is reached; propose your recommended answer with every question so the user reviews instead of answering from blank. Use WHENEVER the user describes a feature, task, design, refactor, or experiment — seeming clarity is not a skip reason; underspecified edges are. Use ALSO mid-work, whenever it emerges that the change touches something expensive to unmake — a stored data shape, an interface others call, an assumption that there is exactly one of something. SKIP only when the task is trivial (one-line fix, formatting, copy-paste edit), when the user hands over a complete written plan for execution, when the user explicitly says "skip planning" / "just do it", or when the project is being onboarded (atlas-bootstrap has its own interview). Writes one design document per round under docs/atlas/design/: what the round decided, and what it left open.
 ---
 
 # Grill Me
@@ -19,18 +19,63 @@ grilled.
 
 ## Hard rules
 
-1. **One question at a time.** Batching is forbidden — answers degrade.
+1. **Questions in one round must be mutually independent.** If a question
+   depends on the answer to another question in the same round, it belongs to
+   the next round. What degrades an answer is being asked something that
+   depends on an answer not yet given; asking independent questions together
+   costs nothing. The bound is independence, not count.
 2. **Walk down the tree, not across.** If A determines what to ask about B,
    resolve A first.
 3. **Propose your answer with every question.** "My guess: X. Is that right?",
    never "What do you think?".
-4. **Explore before asking.** If reading a file, running `git log`, or listing a
-   directory would answer it, do that and skip the question.
+4. **Finding facts is your job, never the user's.** If reading a file, running
+   `git log`, or listing a directory would answer it, do that instead of asking.
 5. **Stop at shared understanding, not at exhaustive detail.** Most plans need
    8–15 resolved questions. Past 20 you are over-grilling.
 6. **Grill against what the project has already settled.** The session-start
    state is in your context — the guardrails, the constraints in force, the open
    questions. Check each answer against them as it lands.
+
+## Ask in rounds, and go and find the facts yourself
+
+The interview is a decision tree. A round asks every question whose
+prerequisites are already settled — the ones answerable now without guessing at
+an answer you have not heard. The user answers the round, the tree grows, and
+the next round is whatever that opened up. A question that depended on another
+in the round just asked belongs to the next one.
+
+Number each question, give it a short title, and put your recommended answer on
+its own line:
+
+```
+❓ **Q1** — **<title>**: <the question, and the choices if there are any>
+
+➡️ <your recommended answer, and why>
+
+---
+
+❓ **Q2** — **<title>**: …
+
+➡️ …
+```
+
+A question answerable from the filesystem, the git history or a tool is never
+put to the user. Dispatch a sub-agent to find out, and do not wait on it: a
+running exploration is an unsettled prerequisite, so only the questions
+downstream of it move to a later round while the rest of this one is asked now.
+
+Three properties bound the dispatch:
+
+- **Read-only, and the smallest model that can do the job.** Locating a file,
+  reading a fragment, listing a directory — that is retrieval, not judgment.
+  Move up only when the task genuinely needs judgment.
+- **It must not be able to dispatch sub-agents of its own.** Where the harness
+  offers an agent kind without that capability, pick that kind, so the limit
+  holds mechanically rather than by instruction.
+- **No more than three or four at once**, and that is a ceiling judged against
+  the round, not a number to fill. Wanting more usually means the round was not
+  separated properly, and something that should have been put to the user is
+  being looked up instead.
 
 ## Grill against what is already settled
 
@@ -128,14 +173,26 @@ implementation; any other way serves as well.
 
 ## Example
 
-> Q1: Looking at `src/api/`, I see Express routes and no Redis in
-> `package.json` — single-server setup. My guess: per-IP in-memory rate limiting
-> via `express-rate-limit`. Right?
+The first round, after a sub-agent has reported what is in `src/api/`. The two
+questions are independent — neither answer changes what the other is asking —
+so they go together:
 
-> Q2: Which routes? My guess: only `/api/v1/auth/*`, the usual abuse vector.
-> Others untouched. Right?
+> ❓ **Q1** — **Where the counter lives**: `src/api/` is Express routes with no
+> Redis in `package.json`, so this is a single server. My guess: per-IP
+> in-memory rate limiting via `express-rate-limit`.
+>
+> ➡️ In-process counter. A shared store is only worth it once there is a second
+> server, and adding it later is a config change.
+>
+> ---
+>
+> ❓ **Q2** — **Which routes**: every route, or only the ones worth protecting?
+>
+> ➡️ Only `/api/v1/auth/*`, the usual abuse vector. The rest untouched.
 
-...and after roughly ten questions, write the document and stop grilling.
+What the limit should be belongs to the next round: it depends on which routes
+are covered. After roughly ten resolved questions, write the document and stop
+grilling.
 
 ## Output
 
@@ -222,7 +279,9 @@ drifting.
   The design becomes a preamble hurried past on the way to the code.
 - **DO NOT** accept "I'll figure it out as I go", or a check with no named
   source.
-- **DO NOT** batch questions. One. At. A. Time.
+- **DO NOT** put a question in the same round as the question it depends on.
+  Independence is the bound, not the number of questions.
+- **DO NOT** ask the user for a fact you could look up.
 - **DO NOT** pad Still open. An entry that could not seed the next round is not
   an entry, and hedging on something the round actually settled belongs in
   Decided.
