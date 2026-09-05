@@ -5,6 +5,7 @@ files it moves are dated accounts of what was undertaken, so reshaping them
 into the new skeleton would fabricate a history that did not happen — which is
 why the check is byte-identity rather than a structural assertion.
 """
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +14,8 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 MIGRATE = REPO / "skills" / "atlas-entity" / "scripts" / "migrate_v2_to_v3.py"
+TEMPLATE = REPO / "templates" / "README.md"
+V2_README = REPO / "tests" / "fixtures" / "v2-store-readme.md"
 
 OLD_UNIT = """\
 # Land intent, spec and plan as work units
@@ -43,6 +46,7 @@ def project(tmp_path):
     (atlas / "VERSION").write_text("2\n", encoding="utf-8")
     (atlas / "work").mkdir()
     (atlas / "work" / "2026-09-03-a-unit.md").write_text(OLD_UNIT, encoding="utf-8")
+    shutil.copyfile(V2_README, atlas / "README.md")
     return tmp_path
 
 
@@ -56,6 +60,25 @@ def test_the_files_survive_byte_for_byte(project):
     assert (atlas / "VERSION").read_text(encoding="utf-8") == "3\n"
 
 
+def test_an_untouched_store_readme_is_refreshed(project):
+    # Left alone it would go on describing work/ and the three sections, in
+    # the file a reader opens to learn what the layout is.
+    assert migrate(project).returncode == 0
+    readme = project / "docs" / "atlas" / "README.md"
+    assert readme.read_text(encoding="utf-8") == TEMPLATE.read_text(encoding="utf-8")
+
+
+def test_an_edited_store_readme_is_reported_not_overwritten(project):
+    readme = project / "docs" / "atlas" / "README.md"
+    edited = readme.read_text(encoding="utf-8") + "\n## Local note\n"
+    readme.write_text(edited, encoding="utf-8")
+
+    proc = migrate(project)
+    assert proc.returncode == 0
+    assert readme.read_text(encoding="utf-8") == edited
+    assert "has local edits" in proc.stdout
+
+
 def test_a_dry_run_touches_nothing(project):
     proc = migrate(project, "--dry-run")
     assert proc.returncode == 0, proc.stderr
@@ -63,6 +86,8 @@ def test_a_dry_run_touches_nothing(project):
     assert (atlas / "work" / "2026-09-03-a-unit.md").exists()
     assert not (atlas / "design").exists()
     assert (atlas / "VERSION").read_text(encoding="utf-8") == "2\n"
+    assert (atlas / "README.md").read_text(encoding="utf-8") == V2_README.read_text(
+        encoding="utf-8")
 
 
 def test_running_twice_refuses_rather_than_merging(project):

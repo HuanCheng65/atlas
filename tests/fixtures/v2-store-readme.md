@@ -10,7 +10,7 @@ rules for writing to it.
 docs/atlas/
 ├── VERSION                 the store's format version; absent means v1
 ├── ROADMAP.md              current milestone (one section only)
-├── design/                 one file per grill round: decided, and still open
+├── work/                   one file per work unit: its intent, spec and plan
 │   └── YYYY-MM-DD-slug.md  written once, not edited afterwards
 ├── records/                everything remembered, one counter for all types
 │   ├── _index.md           auto-generated browse view
@@ -20,37 +20,21 @@ docs/atlas/
     └── v1-id-map.tsv       pre-v2 identifiers → the records they became
 ```
 
-## Design documents
+## Work units
 
-One file per round of grilling under `design/`, holding **Decided** and **Still
-open**, written once by `grill-me` and not edited afterwards. That is what makes
-it safe to commit: it is a dated account of what one round settled, which stays
-true however the code moves. There is no work log, no status, and nothing to
-close.
+One file per work unit under `work/`, holding Intent, Spec and Plan, written
+once by `grill-me` and not edited afterwards. That is what makes it safe to
+commit: it is a dated account of what was undertaken, which stays true however
+the code moves. There is no work log, no status, and nothing to close.
 
-A grill crosses one gap — vague to decided — and the gaps do not come in a fixed
-set. Clarifying a requirement, settling a product's form, settling how a module
-is built, ordering the steps: each is one round, and the level is named in the
-title rather than imposed as a schema. A round that settled a design and reached
-no implementation is complete without a plan in it. Spec and design are not two
-kinds of thing: what one round chose among alternatives is what the next round
-must satisfy.
+The Spec names the representation the work settled on, when it needed one, and
+gives each check the source of its verdict — a reference implementation, an
+invariant, data whose answers are known independently, a failure that happened,
+values the user gave. A check whose only source is the code under test is a
+characterization test and must say so.
 
-Each Decided item carries the source of the verdict on it — a reference
-implementation, an invariant, data whose answers are known independently, a
-failure that happened, values the user gave. An item whose only source is the
-code under test is a characterization test and must say so.
-
-**Still open means "as of this date."** Nothing closes those entries and nobody
-returns to tick them off; a later round settling one is a later document. The
-test for an entry is that it could seed the next round.
-
-Documents name the one they continue, and stay flat: rounds branch, and a later
-round may draw on two earlier ones, which is a graph and not a tree. They do not
-load at session start — `ls docs/atlas/design/` is the menu when one is wanted.
-
-What outlives the round goes to the store. What is only how this task got done
-stays in Decided.
+What outlives the work unit goes to the store. What is only how this task got
+done stays in the Spec.
 
 ## The record store
 
@@ -104,7 +88,7 @@ Four types, with `type` an ordinary field that can be corrected later:
 |---|---|
 | Start a session | the SessionStart hook loads state; the agent invokes `atlas:using-atlas` |
 | Write a record | `atlas-entity/scripts/new.py`, one call, body on stdin |
-| Think through anything non-trivial | `atlas:grill-me` — one document per round under `design/` |
+| Plan a non-trivial task | `atlas:grill-me` |
 | Rename a record | `atlas-entity/scripts/rename.py` — never by hand, links resolve by filename |
 | Check the store | `atlas-entity/scripts/validate.py` |
 | List or audit records | `atlas:atlas-entity` |

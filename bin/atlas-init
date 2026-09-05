@@ -21,9 +21,13 @@ echo "atlas: ensuring $TARGET skeleton"
 mkdir -p "$TARGET/records"
 
 # Stamps the store's format version. Without it, scripts from a later atlas
-# read this store as an empty one and report success.
+# read this store as an empty one and report success. Asked of the scripts
+# rather than written as a literal here: a store created today is a current
+# store, and a literal is one place a version bump can be forgotten — which is
+# how a freshly created store came to be refused as out of date.
 if [ ! -e "$TARGET/VERSION" ]; then
-    echo 2 > "$TARGET/VERSION"
+    python3 -c "import sys; sys.path.insert(0, '$REPO_DIR/skills/atlas-entity/scripts'); import _lib; print(_lib.STORE_VERSION)" \
+        > "$TARGET/VERSION"
     echo "atlas:   create $TARGET/VERSION"
 else
     echo "atlas:   skip $TARGET/VERSION (exists)"
