@@ -284,10 +284,15 @@ def main():
 
     # Stamped last: until it is written the store is still v1, so an
     # interrupted run leaves a store that says so rather than one that lies.
-    _lib.atomic_write(_lib.VERSION_FILE, f"{_lib.STORE_VERSION}\n")
+    # The literal 2, not STORE_VERSION: this script converts one step, and a
+    # store it has finished with is a v2 store however far the current scripts
+    # have moved on. The next step's migration stamps the next number.
+    _lib.atomic_write(_lib.VERSION_FILE, "2\n")
 
-    import reindex  # noqa: E402  (same dir, path set above)
-    reindex.build()
+    # The index is not rebuilt here. A v1 store arrives with more than one step
+    # ahead of it, every script refuses a store mid-chain, and reindex is one
+    # of them; the last migration in the chain builds it.
+    print("\nnow run migrate_v2_to_v3.py")
 
 
 if __name__ == "__main__":

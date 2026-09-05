@@ -230,26 +230,34 @@ pre-record journal. Frozen, still grep-able, never migrated. Bulk-converting
 old material into the live store would only refill the inbox the redesign
 emptied.
 
-### Work units
+### Design documents
 
-`docs/atlas/work/<date>-<slug>.md` holds one work unit's intent, spec and
-plan. It is written once by `grill-me` and not edited afterwards, which is
-what lets it be committed: it is a dated account of what was undertaken, and
-that stays true however the code moves.
+`docs/atlas/design/<date>-<slug>.md` holds one round of grilling: what it
+decided, and what it left open as of that date. It is written once by
+`grill-me` and not edited afterwards, which is what lets it be committed: it is
+a dated account of what that round settled, and that stays true however the
+code moves. Each document names the one it continues; they stay flat, because
+rounds branch and a later round may draw on two earlier ones.
 
-The file it replaced, `plan.md`, was a single path overwritten by every work
-unit in turn. That is a committed file whose truth holds only while one
-particular piece of work is in flight, and it went stale for ten commits
-before anyone noticed. The defect was the reuse of one path, not the keeping
-of plans.
+A grill crosses one gap — vague to decided — and the gaps do not come in a
+fixed set. The shape this replaced demanded Intent, Spec and Plan from every
+interview, so a round that settled a product's form and reached no
+implementation had to invent the level it never got to. The level is now named
+in the title. Spec and design were never two kinds of thing: what one round
+chose among alternatives is what the next round must satisfy.
+
+The path it replaced before that, `plan.md`, was a single file overwritten by
+every piece of work in turn, and went stale for ten commits before anyone
+noticed. The defect was the reuse of one path, not the keeping of plans.
 
 It is not the journal returning. The journal died of a work log that grew by
-appending and a `status` field that needed someone to come back and change
-it; a work unit file has neither, and nothing in it has to be closed.
+appending and a `status` field that needed someone to come back and change it.
+A design document has neither: nothing closes a Still open entry, because the
+section says what was open on a date rather than what is open now.
 
-What outlives the work unit goes to the store: a constraint nothing enforces,
-a choice that is architecturally significant, a measurement, an open
-question. A choice that is only how this task got done stays in the spec.
+What outlives the round goes to the store: a constraint nothing enforces, a
+choice that is architecturally significant, a measurement, an open question. A
+choice that is only how this task got done stays in the document.
 
 ## Skill activation patterns
 
@@ -266,7 +274,7 @@ described in its SKILL.md. The typical activation timeline for a task:
    using-atlas               ← the rules for writing records
        │
        ▼
-   grill-me (non-trivial work)  → docs/atlas/work/<date>-<slug>.md
+   grill-me (non-trivial work)  → docs/atlas/design/<date>-<slug>.md
        │                          also mid-work, when the change turns out to
        │                          touch something expensive to unmake
        │

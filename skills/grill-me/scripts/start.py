@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""Open the file for a work unit: one file, three sections, written once.
+"""Open the document for one round of grilling: what it decided, what it left.
 
-The file that used to hold this was `docs/atlas/plan.md`, a single path
-overwritten by every work unit in turn. That is what made it rot: a committed
-file whose content is only correct while one particular piece of work is in
-flight, and which looks authoritative in git forever. One file per work unit
-removes the defect without removing the plan — each file is a dated account of
-what was undertaken that day, which stays true.
+A grill crosses one gap — from something vague to something more decided — and
+the gaps do not come in a fixed set of three. Settling a product's form is
+design at one depth; how each module is built is design one depth lower, and
+neither is Intent, Spec or Plan. The skeleton this used to write demanded all
+three from every interview, so a round that stopped at a design had to invent
+the levels it never reached. The level is now a label in the title.
 
-The date lives in the filename and nowhere else, and this script owns it. The
-sections are written by the script rather than remembered, so the structure is
-mechanical.
+The continuation line is the only structure holding the documents together, and
+a spine maintained by prose reminders is not maintained — so exactly one of
+`--from` or `--new` is required, and `--from` refuses a target that is not
+there.
+
+The date lives in the filename and nowhere else, and this script owns it.
 
 Must be run from the project root.
 """
@@ -28,18 +31,23 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SKELETON = """\
 # {title}
 
-## Intent
+{lineage}
 
-## Spec
+## Decided
 
-## Plan
+## Still open
 """
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--slug", required=True,
-                    help="lowercase kebab-case, names the work, not the task type")
+                    help="lowercase kebab-case, names what this round settled")
+    lineage = ap.add_mutually_exclusive_group(required=True)
+    lineage.add_argument("--from", dest="parent", metavar="FILENAME",
+                         help="the design document this round continues")
+    lineage.add_argument("--new", action="store_true",
+                         help="this round starts a line of its own")
     args = ap.parse_args()
 
     if not SLUG_RE.match(args.slug):
@@ -49,16 +57,25 @@ def main():
     if complaint:
         sys.exit(complaint)
 
-    _lib.WORK.mkdir(parents=True, exist_ok=True)
-    path = _lib.WORK / f"{datetime.now():%Y-%m-%d}-{args.slug}.md"
+    if args.parent:
+        parent = _lib.DESIGN / Path(args.parent).name
+        if not parent.is_file():
+            sys.exit(f"no such design document: {parent}")
+        lineage = f"Continues `{parent}`."
+    else:
+        lineage = "Starts a new line."
+
+    _lib.DESIGN.mkdir(parents=True, exist_ok=True)
+    path = _lib.DESIGN / f"{datetime.now():%Y-%m-%d}-{args.slug}.md"
     if path.exists():
-        # Two work units on one day with one slug is more often a second run
+        # Two rounds on one day with one slug is more often a second run
         # against a file already being filled in than a genuine collision.
         sys.exit(f"{path} exists; re-run with a distinguishing slug")
 
     title = args.slug.replace("-", " ")
-    path.write_text(SKELETON.format(title=title[:1].upper() + title[1:]),
-                    encoding="utf-8")
+    path.write_text(
+        SKELETON.format(title=title[:1].upper() + title[1:], lineage=lineage),
+        encoding="utf-8")
     print(path)
 
 

@@ -127,36 +127,6 @@ def render_roadmap(out):
     out.append("")
 
 
-def render_work(out):
-    """Name the most recent work unit, with its date and whether it is committed.
-
-    Deliberately not "the active one": nothing in a work unit file says whether
-    it is finished, because a field that says so is only true while somebody
-    maintains it. The newest file plus its date is a claim that cannot go stale,
-    and the reader can see for themselves how old it is.
-    """
-    if not _lib.WORK.is_dir():
-        return
-    files = sorted(_lib.WORK.glob("*.md"))
-    if not files:
-        return
-    latest = files[-1]
-    if not _git("git", "rev-parse", "--is-inside-work-tree"):
-        # Outside a repository there is no such thing as committed, and
-        # reporting one of the two states would be a claim with no basis.
-        state = ""
-    elif _git("git", "status", "--porcelain", "-uall", "--", str(latest)):
-        state = " (uncommitted)"
-    else:
-        state = " (committed)"
-    out.append(f"## Latest work unit{state}")
-    out.append(f"`{latest}`")
-    intent = first_sentence(section(latest.read_text(encoding="utf-8"), "Intent"))
-    if intent:
-        out.append(f"  → {intent}")
-    out.append("")
-
-
 def constitution_links():
     """Record numbers PROJECT.md already quotes, in any section.
 
@@ -312,7 +282,6 @@ def main():
     out = ([] if resume else [REMINDER, ""]) + ["# Atlas state", ""]
     render_project(out)
     render_roadmap(out)
-    render_work(out)
     render_records(out, records, state)
     print("\n".join(out))
 

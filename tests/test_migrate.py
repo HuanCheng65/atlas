@@ -15,6 +15,9 @@ import yaml
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "skills" / "atlas-entity" / "scripts"
 MIGRATE = SCRIPTS / "migrate_v1_to_v2.py"
+# A v1 store has more than one step ahead of it, and every script refuses a
+# store mid-chain — so anything asserting on the result runs the chain.
+MIGRATE_V3 = SCRIPTS / "migrate_v2_to_v3.py"
 VALIDATE = SCRIPTS / "validate.py"
 
 PROJECT_MD = """\
@@ -171,6 +174,7 @@ def test_a_newer_store_is_refused_too(old_store):
 
 def test_migration_produces_a_valid_store(old_store):
     assert run(MIGRATE, cwd=old_store).returncode == 0
+    assert run(MIGRATE_V3, cwd=old_store).returncode == 0
     proc = run(VALIDATE, cwd=old_store)
     assert proc.returncode == 0, proc.stdout
     assert "4 records" in proc.stdout
@@ -253,6 +257,7 @@ def test_answered_by_moves_the_edge_onto_the_answerer(old_store):
     assert "answers::" not in body(question)
     assert "(answers:: [[" in body(answerer)
     assert int(answerer.stem.split("-")[0]) > int(question.stem.split("-")[0])
+    assert run(MIGRATE_V3, cwd=old_store).returncode == 0
     assert run(VALIDATE, cwd=old_store).returncode == 0
 
 

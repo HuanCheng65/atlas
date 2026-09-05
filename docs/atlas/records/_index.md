@@ -15,7 +15,7 @@
 - **015** [[015-topic-auto-promotion-heuristic-for-atlas-compact|Topic auto-promotion heuristic for atlas-compact]] — 2026-05-27 — answered by 036; tags: atlas-compact, topics; cited by 2
 - **017** [[017-cross-skill-code-duplication-threshold-and-consolidation-str|Cross-skill code duplication threshold and consolidation strategy]] — 2026-05-27 — answered by 037; tags: skills, refactor; cited by 1
 
-## Decisions (36)
+## Decisions (37)
 
 - **001** [[001-plain-text-git-as-the-data-layer|Plain text + git as the data layer]] — 2026-05-27 — tags: data-model, infrastructure; cited by 5
 - **003** [[003-split-claude-md-agent-rules-from-project-md-project-backgrou|Split CLAUDE.md (agent rules) from PROJECT.md (project background)]] — 2026-05-27 — tags: docs, agent-onboarding
@@ -28,28 +28,29 @@
 - **021** [[021-user-facing-transparency-two-tier-framework-vocabulary-rule|User-facing transparency: two-tier framework vocabulary rule]] — 2026-05-28 — tags: skills, ux, agent-behavior, transparency; cited by 2
 - **022** [[022-roadmap-holds-only-current-milestone-no-up-next-backlog-or-r|Roadmap holds only Current milestone — no Up next, Backlog, or Recently done]] — 2026-05-27 — tags: roadmap, data-model, concurrency
 - **023** [[023-progressive-disclosure-data-layer-title-is-the-menu-body-loa|Progressive-disclosure data layer: title is the menu, body loads on demand]] — 2026-05-28 — tags: data-model, skills, orient, design-principle; cited by 2
-- **024** [[024-triggers-live-where-the-agent-always-sees-them-not-in-skill|Triggers live where the agent always sees them, not in skill bodies]] — 2026-05-28 — tags: skills, triggers, agent-behavior, architecture; cited by 3
+- **024** [[024-triggers-live-where-the-agent-always-sees-them-not-in-skill|Triggers live where the agent always sees them, not in skill bodies]] — 2026-05-28 — tags: skills, triggers, agent-behavior, architecture; cited by 4
 - **025** [[025-distributed-skill-bodies-cite-reasoning-inline-never-this-pr|Distributed skill bodies cite reasoning inline, never this project's entity IDs]] — 2026-05-28 — tags: skills, distribution, hygiene; cited by 1
 - **028** [[028-mechanical-affordances-over-prose-constraints-for-agent-rules|Mechanical affordances over prose constraints for agent rules]] — 2026-06-12 — tags: skills, agent-behavior, enforcement, design-principle; cited by 3
 - **029** [[029-framework-generates-no-events-silent-ops-records-ride-work-commits|Framework generates no events: silent ops, records ride work commits]] — 2026-06-12 — tags: skills, ux, transparency, git, agent-behavior
 - **030** [[030-a-record-s-truth-may-not-depend-on-a-future-edit|A record's truth may not depend on a future edit]] — 2026-09-02 — tags: data-model, design-principle; cited by 3
 - **031** [[031-one-counter-for-every-record-type-is-a-mutable-field|One counter for every record; type is a mutable field]] — 2026-09-02 — tags: data-model, entities, schema; cited by 1
 - **032** [[032-relations-live-in-the-body-as-obsidian-wikilinks|Relations live in the body as Obsidian wikilinks]] — 2026-09-02 — tags: data-model, schema, links, obsidian; cited by 1
-- **033** [[033-the-journal-is-deleted-findings-become-records|The journal is deleted; findings become records]] — 2026-09-02 — tags: journal, data-model, dogfood; cited by 1
+- **033** [[033-the-journal-is-deleted-findings-become-records|The journal is deleted; findings become records]] — 2026-09-02 — tags: journal, data-model, dogfood; cited by 2
 - **034** [[034-the-session-start-hook-loads-state-directly|The session-start hook loads state directly]] — 2026-09-02 — tags: hooks, session-lifecycle, skills
 - **035** [[035-working-rules-are-un-mechanized-constraints-authored-not-promoted|Working rules are un-mechanized constraints, authored not promoted]] — 2026-09-02 — tags: project-md, decisions, agent-behavior
 - **036** [[036-compact-rewrites-the-memory-set-eviction-is-the-default|Compact rewrites the memory set; eviction is the default]] — 2026-09-02 — tags: atlas-compact, agent-behavior
 - **037** [[037-atlas-ships-as-a-plugin-one-install-unit|Atlas ships as a Claude Code plugin; skills, hook and CLI install as one unit]] — 2026-09-02 — tags: packaging, infrastructure, hooks; cited by 1
 - **038** [[038-identifiers-stay-inside-the-store|Record identifiers stay inside the store; leaked ones are resolved, not rewritten]] — 2026-09-03 — tags: data-model, packaging
 - **039** [[039-store-validated-by-a-post-write-hook|The store is validated by a post-write hook, not by the script that writes]] — 2026-09-03 — tags: hooks, enforcement, data-model; cited by 1
-- **041** [[041-work-units-land-as-one-file-each-plan-md-is-deleted|Work units land as one file each; plan.md is deleted]] — 2026-09-03 — tags: data-model, workflow
 - **042** [[042-process-weight-escalates-on-evidence-never-on-a-declared-task-size|Process weight escalates on evidence, never on a declared task size]] — 2026-09-03 — tags: workflow, agent-behavior
 - **043** [[043-every-check-names-the-source-of-its-verdict|Every check names the source of its verdict]] — 2026-09-03 — tags: verification, workflow
+- **044** [[044-design-documents-replace-work-units-the-three-section-shape-is-dropped|Design documents replace work units; the three-section shape is dropped]] — 2026-09-05 — tags: data-model, workflow
 - **002** [[002-skills-user-level-data-project-level-via-symlink-install|Skills user-level, data project-level via symlink install]] — 2026-05-27 — superseded by 037; tags: packaging, infrastructure; cited by 2
 - **004** [[004-three-entity-types-d-e-q-with-shared-base-frontmatter|Three entity types D/E/Q with shared base frontmatter]] — 2026-05-27 — superseded by 031; tags: data-model; cited by 2
 - **005** [[005-multiple-active-journal-entries-allowed-no-single-active-con|Multiple active journal entries allowed (no single-active constraint)]] — 2026-05-27 — superseded by 033; tags: journal, concurrency; cited by 4
-- **006** [[006-verification-keepers-throwaways-instead-of-enforced-tdd|Verification + Keepers/Throwaways instead of enforced TDD]] — 2026-05-27 — superseded by 043; tags: verification, workflow; cited by 3
+- **006** [[006-verification-keepers-throwaways-instead-of-enforced-tdd|Verification + Keepers/Throwaways instead of enforced TDD]] — 2026-05-27 — superseded by 043; tags: verification, workflow; cited by 4
 - **009** [[009-using-atlas-re-injects-per-context-window-resume-only-re-orients|using-atlas re-injects per context window; resume only re-orients]] — 2026-06-12 — superseded by 034; tags: skills, activation, hooks, session-lifecycle; cited by 1
 - **019** [[019-one-file-per-work-unit-plan-work-log-close-merged-into-a-jou|One file per work unit: plan, work log, close merged into a journal entry]] — 2026-05-27 — superseded by 033; tags: journal, data-model; cited by 2
 - **026** [[026-decisions-stay-adr-events-standing-rules-promote-into-project-md|Decisions stay ADR events; standing rules promote into PROJECT.md]] — 2026-06-12 — superseded by 035; tags: data-model, decisions, project-md, progressive-disclosure; cited by 4
 - **027** [[027-orient-scans-frontmatter-index-md-demoted-to-deterministic-human-view|Orient scans frontmatter; _index.md demoted to deterministic human view]] — 2026-06-12 — superseded by 034; tags: orient, data-model, indexes, determinism; cited by 1
+- **041** [[041-work-units-land-as-one-file-each-plan-md-is-deleted|Work units land as one file each; plan.md is deleted]] — 2026-09-03 — superseded by 044; tags: data-model, workflow; cited by 1

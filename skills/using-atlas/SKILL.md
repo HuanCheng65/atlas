@@ -156,13 +156,22 @@ Record changes are part of the work unit they describe. Stage them with the
 work's own commit; the message names the content, never the framework. A
 records-only commit is legitimate only when the records are themselves the work.
 
-## Work units, and two moments to recognise
+## Design documents, and two moments to recognise
 
-A work unit's intent, spec and plan live in one file under `docs/atlas/work/`,
-written by `grill-me`. The file is written once and not edited afterwards, so
-it remains a true account of what was undertaken. The store holds what outlives
-it: a constraint, an architecturally significant choice, a measurement, an open
-question.
+`docs/atlas/design/` holds one document per round of grilling: what that round
+decided, and what it left open as of that date. `grill-me` writes them, one
+naming the one it continues. Each is written once and not edited afterwards, so
+it remains a true account of what that round settled. The store holds what
+outlives it: a constraint, an architecturally significant choice, a measurement,
+an open question.
+
+These do not load at session start, because which line of thinking is being
+picked up today has nothing to do with which document is newest. Go and look
+whenever the topic is not new — the user refers to something already discussed,
+asks what comes next, or the change reaches something that has clearly been
+thought about before. `ls docs/atlas/design/` is the whole menu, since each
+filename carries its date and topic; open the one you want, and grep for
+content across them.
 
 Two moments during ordinary work carry no announcement, and recognising them is
 your responsibility.

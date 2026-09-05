@@ -1,12 +1,12 @@
 ---
 name: grill-me
-description: Use this skill BEFORE starting non-trivial work. Interview the user one question at a time, walking down the decision tree, until shared understanding is reached; propose your recommended answer with every question so the user reviews instead of answering from blank. Use WHENEVER the user describes a feature, task, design, refactor, or experiment — seeming clarity is not a skip reason; underspecified edges are. Use ALSO mid-work, whenever it emerges that the change touches something expensive to unmake — a stored data shape, an interface others call, an assumption that there is exactly one of something. SKIP only when the task is trivial (one-line fix, formatting, copy-paste edit), when the user hands over a complete written plan for execution, when the user explicitly says "skip planning" / "just do it", or when the project is being onboarded (atlas-bootstrap has its own interview). Writes intent, spec and plan to one file per work unit under docs/atlas/work/.
+description: Use this skill BEFORE starting non-trivial work. Interview the user one question at a time, walking down the decision tree, until shared understanding is reached; propose your recommended answer with every question so the user reviews instead of answering from blank. Use WHENEVER the user describes a feature, task, design, refactor, or experiment — seeming clarity is not a skip reason; underspecified edges are. Use ALSO mid-work, whenever it emerges that the change touches something expensive to unmake — a stored data shape, an interface others call, an assumption that there is exactly one of something. SKIP only when the task is trivial (one-line fix, formatting, copy-paste edit), when the user hands over a complete written plan for execution, when the user explicitly says "skip planning" / "just do it", or when the project is being onboarded (atlas-bootstrap has its own interview). Writes one design document per round under docs/atlas/design/: what the round decided, and what it left open.
 ---
 
 # Grill Me
 
 You interview the user about a plan or design until you reach shared
-understanding. The output is a plan the user has effectively reviewed by
+understanding. The output is a document the user has effectively reviewed by
 answering questions, instead of having to write from blank.
 
 ## Override: this skill IS the interview
@@ -110,7 +110,7 @@ than what was required. That is a **characterization test**: legitimate when the
 subject is code being refactored and the point is to detect change, and wrong
 only when it is unacknowledged and read as a correctness check.
 
-So the Verification section names, for each check, the source of its judgment:
+So each thing the round decided names the source of the judgment on it:
 
 - a reference implementation — the verdict comes from another program
 - a property or invariant — `decode(encode(x)) == x`
@@ -135,53 +135,73 @@ implementation; any other way serves as well.
 > Q2: Which routes? My guess: only `/api/v1/auth/*`, the usual abuse vector.
 > Others untouched. Right?
 
-...and after roughly ten questions, write the plan and stop grilling.
+...and after roughly ten questions, write the document and stop grilling.
 
 ## Output
 
-Open the file with the script, which owns the date and writes the skeleton:
+One round of grilling produces one design document. Before the interview
+starts, `ls docs/atlas/design/` — each filename carries a date and a topic, so
+the listing is the whole menu — and see whether this round continues an earlier
+one.
+
+Open the file with the script, which owns the date and writes the skeleton.
+Exactly one of `--from` or `--new` is required:
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/grill-me/scripts/start.py" \
-    --slug <kebab-case-slug>
+    --slug <kebab-case-slug> --from 2026-09-05-product-form.md
 ```
 
-Then fill the three sections with Edit. **The file is written once and not
-edited afterwards.** It is a dated account of what was undertaken, which stays
-true; that is why it can be committed without going stale. There is no work log,
-no status, and nothing to come back and close.
+Then fill the two sections with Edit. **The file is written once and not edited
+afterwards.** It is a dated account of one round of thinking, which stays true;
+that is why it can be committed without going stale. There is no work log, no
+status, and nothing to come back and close.
 
-### Intent
-What the user is doing, and why now. One or two paragraphs.
+**A grill crosses one gap, and the gaps do not come in a fixed set.** Clarifying
+a vague requirement, settling a product's form, settling how one module is
+built, ordering the implementation steps — each is one round, and which one this
+is depends on where the interview started, not on a schema. Name the level in
+the title. Do not manufacture a level the round never reached: a round that
+settled a design and reached no implementation is complete without a plan in it.
 
-### Spec
-What the result must satisfy. The representation, when the work called for one,
-and why that kind. Then Verification — each check with the source of its verdict
-named, per the bar above.
+There is no separate Spec and no separate design. They are the same content seen
+from two sides — what one round chose among alternatives is what the next round
+must satisfy.
+
+### Decided
+What the round settled. Each item carries how it is judged right or wrong and
+where that verdict comes from, per the bar above.
 
 Bad: "tests pass". Good: "`rtol < 1e-3` against the dense reference on five
 shapes drawn from the production sequence-length distribution" — the dense
-reference being the source.
+reference being the source. An item whose only source is the user's preference
+says so. An item that cannot yet be judged says that, rather than being left
+blank.
 
 If the user resists specifics, push: "Even loosely — what would you check to
 know it is working?"
 
-Close the Spec with Keepers and Throwaways. **A Keeper records a specific
-failure that occurred, or an invariant stated somewhere. Everything else is a
-Throwaway by default** — a check corresponding to no named failure or invariant
-is deleted with the scaffolding.
+When the round reached implementation steps, they go here too, in execution
+order, each a single unit of work — and so does the Keepers and Throwaways
+split, which only means something once there is scaffolding to classify.
+**A Keeper records a specific failure that occurred, or an invariant stated
+somewhere. Everything else is a Throwaway by default** — a check corresponding
+to no named failure or invariant is deleted with the scaffolding.
 
-### Plan
-Concrete actions in execution order, each a single unit of work: a function
-written, a test added, a config changed.
+### Still open
+What this round did not settle, **as of today**. It is not a live TODO list:
+nothing closes these entries, and nobody comes back to tick them off. The test
+for an entry is that it could seed the next round of grilling; anything that
+could not is not an entry, and an empty section is the right answer for a round
+that settled everything in front of it.
 
 Present the file to the user: give the path and walk through the substance,
-keeping to the plan's content.
+keeping to the document's content.
 
 ## What belongs in the store instead
 
-The work unit file holds what was undertaken. Three things outlive it and are
-written as records during the work, not collected at the end:
+The design document holds what one round settled. Three things outlive it and
+are written as records during the work, not collected at the end:
 
 - a constraint **nothing stops the agent from violating** — a `memory` record,
   because it must be restated every session
@@ -189,20 +209,24 @@ written as records during the work, not collected at the end:
   value is the rationale when someone revisits it
 - a measurement, or a question left open
 
-A choice that is only how this task got done stays in the Spec section. The code
-enforces it, so violating it requires rewriting that code rather than drifting.
+A choice that is only how this task got done stays in the Decided section. The
+code enforces it, so violating it requires rewriting that code rather than
+drifting.
 
 ## Anti-patterns
 
 - **DO NOT** skip grill-me because the task "looks clear". You will be wrong
   about the edges, and being wrong compounds during implementation.
-- **DO NOT** propose code in the plan. Code is post-signoff.
+- **DO NOT** propose code in the document. Code is post-signoff.
 - **DO NOT** deliver a representation and its implementation in the same turn.
   The design becomes a preamble hurried past on the way to the code.
-- **DO NOT** accept "I'll figure it out as I go" as Verification, or a check
-  with no named source.
+- **DO NOT** accept "I'll figure it out as I go", or a check with no named
+  source.
 - **DO NOT** batch questions. One. At. A. Time.
+- **DO NOT** pad Still open. An entry that could not seed the next round is not
+  an entry, and hedging on something the round actually settled belongs in
+  Decided.
 - **DO NOT** keep grilling past shared understanding. When the user repeats
-  themselves or tires, write the plan.
-- **DO NOT** edit a work unit file after the work moves on. It said what was
-  undertaken; a later change is a later work unit.
+  themselves or tires, write the document.
+- **DO NOT** edit a design document after the round moves on. It said what that
+  round settled; a later change is a later round.

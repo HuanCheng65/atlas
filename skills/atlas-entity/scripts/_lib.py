@@ -18,10 +18,11 @@ ATLAS = Path("docs/atlas")
 RECORDS = ATLAS / "records"
 VERSION_FILE = ATLAS / "VERSION"
 
-# One file per work unit, holding its intent, spec and plan. Not records: a
-# record states what was learned, a work unit file states what was undertaken.
-# Written once and not edited afterwards, so nothing in it can go stale.
-WORK = ATLAS / "work"
+# One file per grill round: what that round decided and what it left open.
+# Not records: a record states what was learned, a design document states what
+# one round of thinking settled. Written once and not edited afterwards, so
+# nothing in it can go stale.
+DESIGN = ATLAS / "design"
 
 # Written once by the v1 migration and kept forever. The migration renumbers
 # every record, and pre-v2 identifiers had escaped into documents the store
@@ -32,7 +33,7 @@ ID_MAP_FILE = ATLAS / "archive" / "v1-id-map.tsv"
 # Bumped by any change that makes a store unreadable to the previous scripts.
 # Without this, new scripts read an old store as an empty one and report
 # success — a 29-entity store validated OK and loaded as no memory at all.
-STORE_VERSION = 2
+STORE_VERSION = 3
 
 TYPES = ("decision", "experiment", "question", "memory")
 
